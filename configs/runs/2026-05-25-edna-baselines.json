@@ -1,0 +1,95 @@
+{
+  "schema_version": "marinemamba-run-config-v1",
+  "created_utc": "2026-05-25T16:30:00Z",
+  "purpose": "Completed local 12S/eDNA reference split and k-mer baseline runs.",
+  "runs": [
+    {
+      "id": "mitohelper_12s_full_split",
+      "command": "python3 scripts/edna/build_12s_splits.py --source mitohelper --raw-tsv data/edna/raw/mitofish.12S.Nov2025.tsv --out-dir data/edna/processed_12s_full --region full_12s --class-filter Actinopteri",
+      "output_dir": "data/edna/processed_12s_full",
+      "split_manifest_sha256": "143ed54246a393caa70a68499167e986e2b43b806fd7d225c0261ca8d04f61af"
+    },
+    {
+      "id": "mitohelper_12s_mifish_exact_split",
+      "command": "python3 scripts/edna/build_12s_splits.py --source mitohelper --raw-tsv data/edna/raw/mitofish.12S.Nov2025.tsv --out-dir data/edna/processed_12s_mifish --region mifish --class-filter Actinopteri --min-len 120 --max-len 350 --min-supervised-species-count 3 --min-species-per-genus 2",
+      "output_dir": "data/edna/processed_12s_mifish",
+      "note": "Sanity slice only; exact primer extraction from Mitohelper is too sparse for main neural training."
+    },
+    {
+      "id": "rcrux_12s_cleaned_split",
+      "command": "python3 scripts/edna/build_12s_splits.py --source rcrux --raw-zip data/edna/raw/12S_efc.zip --rcrux-table cleaned --out-dir data/edna/processed_12s_rcrux_cleaned --region full_12s --class-filter Actinopteri --min-len 140 --max-len 250",
+      "output_dir": "data/edna/processed_12s_rcrux_cleaned",
+      "split_manifest_sha256": "ec5248faf166af2c4b6be4d681ea8dcebec24d976e0534ce83e305c7507e899f"
+    },
+    {
+      "id": "rcrux_12s_blast_seed_split",
+      "command": "python3 scripts/edna/build_12s_splits.py --source rcrux --raw-zip data/edna/raw/12S_efc.zip --rcrux-table blast_seeds --out-dir data/edna/processed_12s_rcrux_blast_seeds --region full_12s --class-filter Actinopteri --min-len 140 --max-len 250",
+      "output_dir": "data/edna/processed_12s_rcrux_blast_seeds",
+      "split_manifest_sha256": "4c072f28fb28cd7a888318e11efa9a638c8a8051edf532a26ce3c04994db200d"
+    },
+    {
+      "id": "mare_mage_12s_full_split",
+      "command": "python3 scripts/edna/build_12s_splits.py --source mare_mage --enforce-hierarchy-consistency --out-dir data/edna/processed_12s_mare_mage",
+      "output_dir": "data/edna/processed_12s_mare_mage",
+      "split_manifest_sha256": "c79f7c8c62e404760ce64b567c97c3d4a77f1e7b9f8073026d47b00cb727d3c0",
+      "note": "Independent Mare-MAGE reference split. Hierarchy-consistency filter drops non-majority species->genus, genus->family, and family->order mappings before splitting."
+    },
+    {
+      "id": "mitohelper_12s_full_kmer6",
+      "command": "python3 scripts/eval_true_eval_c_kmer.py --data-dir data/edna/processed_12s_full --output-dir results/edna_12s_full_kmer --k 6",
+      "result_json": "results/edna_12s_full_kmer/eval_c_kmer6_results.json",
+      "eval_c": {
+        "species": null,
+        "genus": 0.70817843866171,
+        "family": 0.9373173970783533,
+        "order": 0.9669837716843872
+      }
+    },
+    {
+      "id": "mitohelper_12s_mifish_exact_kmer6",
+      "command": "python3 scripts/eval_true_eval_c_kmer.py --data-dir data/edna/processed_12s_mifish --output-dir results/edna_12s_mifish_kmer --k 6",
+      "result_json": "results/edna_12s_mifish_kmer/eval_c_kmer6_results.json",
+      "eval_c": {
+        "species": null,
+        "genus": 0.9285714285714286,
+        "family": 0.9285714285714286,
+        "order": 0.9285714285714286
+      },
+      "note": "High score is not meaningful as a main result because Eval C has only 14 rows."
+    },
+    {
+      "id": "rcrux_12s_cleaned_kmer6",
+      "command": "python3 scripts/eval_true_eval_c_kmer.py --data-dir data/edna/processed_12s_rcrux_cleaned --output-dir results/edna_12s_rcrux_cleaned_kmer --k 6",
+      "result_json": "results/edna_12s_rcrux_cleaned_kmer/eval_c_kmer6_results.json",
+      "eval_c": {
+        "species": null,
+        "genus": 0.8633093525179856,
+        "family": 0.9568345323741008,
+        "order": 0.9900990099009901
+      }
+    },
+    {
+      "id": "rcrux_12s_blast_seed_kmer6",
+      "command": "python3 scripts/eval_true_eval_c_kmer.py --data-dir data/edna/processed_12s_rcrux_blast_seeds --output-dir results/edna_12s_rcrux_blast_kmer --k 6",
+      "result_json": "results/edna_12s_rcrux_blast_kmer/eval_c_kmer6_results.json",
+      "eval_c": {
+        "species": null,
+        "genus": 0.8506616257088847,
+        "family": 0.9546313799621928,
+        "order": 0.9822134387351779
+      }
+    },
+    {
+      "id": "mare_mage_12s_full_kmer6",
+      "command": "python3 scripts/eval_true_eval_c_kmer.py --data-dir data/edna/processed_12s_mare_mage --output-dir results/edna_12s_mare_mage_kmer --k 6",
+      "result_json": "results/edna_12s_mare_mage_kmer/eval_c_kmer6_results.json",
+      "result_sha256": "37b12770ac81e4fcdbd02ec7abd15e9547f560d0ecfe787c1ee4f9d9db3faae6",
+      "eval_c": {
+        "species": null,
+        "genus": 0.8382352941176471,
+        "family": 0.930672268907563,
+        "order": 0.9464285714285714
+      }
+    }
+  ]
+}

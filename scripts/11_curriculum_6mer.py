@@ -62,8 +62,10 @@ def tokenize_6mer(seq, max_tokens=MAX_KMER_TOKENS):
 # ── Dataset ──────────────────────────────────────────────────────────────────
 
 class HierarchicalDataset6mer(Dataset):
-    def __init__(self, df, order_to_idx, family_to_idx, genus_to_idx, species_to_idx):
+    def __init__(self, df, order_to_idx, family_to_idx, genus_to_idx, species_to_idx,
+                 max_tokens=MAX_KMER_TOKENS):
         self.seqs = df["nucleotides"].tolist()
+        self.max_tokens = max_tokens
         self.order_labels = [order_to_idx.get(str(row.get("order_name", "")), 0)
                              for _, row in df.iterrows()]
         self.family_labels = [family_to_idx.get(str(row.get("family_name", "")), 0)
@@ -77,7 +79,7 @@ class HierarchicalDataset6mer(Dataset):
         return len(self.seqs)
 
     def __getitem__(self, idx):
-        x = torch.tensor(tokenize_6mer(self.seqs[idx]), dtype=torch.long)
+        x = torch.tensor(tokenize_6mer(self.seqs[idx], max_tokens=self.max_tokens), dtype=torch.long)
         return (x,
                 torch.tensor(self.order_labels[idx], dtype=torch.long),
                 torch.tensor(self.family_labels[idx], dtype=torch.long),
@@ -148,7 +150,22 @@ def get_curriculum_weights(epoch, total_epochs):
         return {"order": 0.2, "family": 0.3, "genus": 0.5, "species": 1.0}
 
 
-def train_multihead(model, train_dl, val_dl, epochs=40, lr=8e-4, device="cuda"):
+def train_multihead(
+    model,
+    train_dl,
+    val_dl,
+    epochs=40,
+    lr=8e-4,
+    device="cuda",
+    checkpoint_path="results/curriculum_6mer_best.pt",
+    loss_scales=None,
+):
+    if loss_scales is None:
+        loss_scales = {"order": 1.0, "family": 1.0, "genus": 1.0, "species": 1.0}
+    selection_weights = {k: float(v) for k, v in loss_scales.items() if float(v) > 0}
+    if not selection_weights:
+        raise ValueError("At least one taxonomic loss scale must be > 0.")
+
     min_epochs = int(epochs * 0.85)
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=0.01)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs)
@@ -160,6 +177,7 @@ def train_multihead(model, train_dl, val_dl, epochs=40, lr=8e-4, device="cuda"):
 
     for epoch in range(epochs):
         weights = get_curriculum_weights(epoch, epochs)
+        weights = {k: weights[k] * float(loss_scales.get(k, 1.0)) for k in weights}
         active = [k for k, v in weights.items() if v > 0]
 
         model.train()
@@ -194,11 +212,16 @@ def train_multihead(model, train_dl, val_dl, epochs=40, lr=8e-4, device="cuda"):
                 labels = {"order": y_o, "family": y_f, "genus": y_g, "species": y_s}
                 for level in ["order", "family", "genus", "species"]:
                     val_correct[level] += (logits[level].argmax(1) == labels[level]).sum().item()
-                    val_loss_sum += F.cross_entropy(logits[level], labels[level]).item() * len(x)
+                    if level in selection_weights:
+                        val_loss_sum += (
+                            selection_weights[level]
+                            * F.cross_entropy(logits[level], labels[level]).item()
+                            * len(x)
+                        )
                 val_total += len(x)
 
         val_accs = {k: v / val_total for k, v in val_correct.items()}
-        avg_val_loss = val_loss_sum / (val_total * 4)
+        avg_val_loss = val_loss_sum / (val_total * sum(selection_weights.values()))
 
         print(f"  Epoch {epoch+1}/{epochs}: "
               f"O={val_accs['order']:.3f} F={val_accs['family']:.3f} "
@@ -208,7 +231,7 @@ def train_multihead(model, train_dl, val_dl, epochs=40, lr=8e-4, device="cuda"):
         if avg_val_loss < best_val_loss:
             best_val_loss = avg_val_loss
             patience_counter = 0
-            torch.save(model.state_dict(), "results/curriculum_6mer_best.pt")
+            torch.save(model.state_dict(), checkpoint_path)
         else:
             patience_counter += 1
             if patience_counter >= patience and epoch >= min_epochs:
@@ -218,7 +241,7 @@ def train_multihead(model, train_dl, val_dl, epochs=40, lr=8e-4, device="cuda"):
                 print(f"  Patience hit at epoch {epoch+1} but min_epochs={min_epochs}, continuing...")
                 patience_counter = 0
 
-    model.load_state_dict(torch.load("results/curriculum_6mer_best.pt", weights_only=True))
+    model.load_state_dict(torch.load(checkpoint_path, weights_only=True))
     return model
 
 
@@ -231,6 +254,12 @@ def main():
     parser.add_argument("--epochs", type=int, default=40)
     parser.add_argument("--lr", type=float, default=8e-4)
     parser.add_argument("--batch-size", type=int, default=32)
+    parser.add_argument("--max-tokens", type=int, default=MAX_KMER_TOKENS,
+                        help="Maximum overlapping 6-mer tokens per sequence. Default is COI-length 655; use ~1995 for 2kb 12S references.")
+    parser.add_argument("--order-loss-scale", type=float, default=1.0)
+    parser.add_argument("--family-loss-scale", type=float, default=1.0)
+    parser.add_argument("--genus-loss-scale", type=float, default=1.0)
+    parser.add_argument("--species-loss-scale", type=float, default=1.0)
     args = parser.parse_args()
 
     os.makedirs(args.output_dir, exist_ok=True)
@@ -246,7 +275,14 @@ def main():
     print("6-MER CURRICULUM LEARNING")
     print("=" * 60)
     print(f"Train: {len(train_df)} | Val: {len(val_df)} | Test: {len(test_df)} | Unseen: {len(unseen_df)}")
-    print(f"Tokenization: 6-mer (vocab={KMER_VOCAB_SIZE})")
+    print(f"Tokenization: 6-mer (vocab={KMER_VOCAB_SIZE}, max_tokens={args.max_tokens})")
+    loss_scales = {
+        "order": args.order_loss_scale,
+        "family": args.family_loss_scale,
+        "genus": args.genus_loss_scale,
+        "species": args.species_loss_scale,
+    }
+    print(f"Loss scales: {loss_scales}")
 
     all_df = pd.concat([train_df, val_df, test_df])
     orders = sorted(all_df["order_name"].dropna().astype(str).unique())
@@ -261,8 +297,14 @@ def main():
 
     print(f"Orders: {len(orders)} | Families: {len(families)} | Genera: {len(genera)} | Species: {len(species)}")
 
-    train_ds = HierarchicalDataset6mer(train_df, order_to_idx, family_to_idx, genus_to_idx, species_to_idx)
-    val_ds = HierarchicalDataset6mer(val_df, order_to_idx, family_to_idx, genus_to_idx, species_to_idx)
+    train_ds = HierarchicalDataset6mer(
+        train_df, order_to_idx, family_to_idx, genus_to_idx, species_to_idx,
+        max_tokens=args.max_tokens,
+    )
+    val_ds = HierarchicalDataset6mer(
+        val_df, order_to_idx, family_to_idx, genus_to_idx, species_to_idx,
+        max_tokens=args.max_tokens,
+    )
     train_dl = DataLoader(train_ds, batch_size=args.batch_size, shuffle=True, num_workers=4, drop_last=True)
     val_dl = DataLoader(val_ds, batch_size=args.batch_size, shuffle=False, num_workers=4)
 
@@ -274,7 +316,12 @@ def main():
     )
 
     print("\nTraining with curriculum...")
-    model = train_multihead(model, train_dl, val_dl, epochs=args.epochs, lr=args.lr, device=device)
+    checkpoint_path = os.path.join(args.output_dir, "curriculum_6mer_best.pt")
+    model = train_multihead(
+        model, train_dl, val_dl, epochs=args.epochs, lr=args.lr,
+        device=device, checkpoint_path=checkpoint_path,
+        loss_scales=loss_scales,
+    )
 
     # ── Evaluation ──
     print("\n=== EVALUATION ===")
@@ -283,7 +330,10 @@ def main():
 
     # Test set
     print("\n--- Test Set (Seen Species) ---")
-    test_ds = HierarchicalDataset6mer(test_df, order_to_idx, family_to_idx, genus_to_idx, species_to_idx)
+    test_ds = HierarchicalDataset6mer(
+        test_df, order_to_idx, family_to_idx, genus_to_idx, species_to_idx,
+        max_tokens=args.max_tokens,
+    )
     test_dl = DataLoader(test_ds, batch_size=args.batch_size, shuffle=False, num_workers=4)
 
     test_correct = {"order": 0, "family": 0, "genus": 0, "species": 0}
@@ -304,15 +354,16 @@ def main():
     print("\n--- Eval A: Unseen Genera ---")
 
     class SeqDataset6mer(Dataset):
-        def __init__(self, seqs):
+        def __init__(self, seqs, max_tokens):
             self.seqs = seqs
+            self.max_tokens = max_tokens
         def __len__(self):
             return len(self.seqs)
         def __getitem__(self, idx):
-            return torch.tensor(tokenize_6mer(self.seqs[idx]), dtype=torch.long)
+            return torch.tensor(tokenize_6mer(self.seqs[idx], max_tokens=self.max_tokens), dtype=torch.long)
 
     def extract_features(seqs):
-        dl = DataLoader(SeqDataset6mer(seqs), batch_size=128, shuffle=False, num_workers=4)
+        dl = DataLoader(SeqDataset6mer(seqs, args.max_tokens), batch_size=128, shuffle=False, num_workers=4)
         embeds = []
         with torch.no_grad():
             for x in dl:
@@ -358,15 +409,92 @@ def main():
     eval_b_genus = float(accuracy_score(test_df["genus_name"].astype(str), genus_preds_test))
     print(f"  Genus: {eval_b_genus:.4f}")
 
+    # Eval C: true unseen species held out before pretraining/training.
+    eval_c_true = None
+    eval_c_path = data_dir / "eval_c_unseen_species.csv"
+    if eval_c_path.exists():
+        print("\n--- Eval C: True Unseen Species, Seen Genera ---")
+        eval_c_df = pd.read_csv(eval_c_path)
+
+        all_seen_species = set(all_df["species_name"].dropna())
+        eval_c_species = set(eval_c_df["species_name"].dropna())
+        eval_c_genera = set(eval_c_df["genus_name"].dropna())
+        train_genera = set(train_df["genus_name"].dropna())
+
+        species_leak = eval_c_species & all_seen_species
+        missing_genera = eval_c_genera - train_genera
+        seq_leak = set(eval_c_df["nucleotides"]) & set(train_df["nucleotides"])
+        if species_leak:
+            raise RuntimeError(f"Eval C species leak into seen splits: {len(species_leak)}")
+        if missing_genera:
+            raise RuntimeError(f"Eval C genera missing from train: {len(missing_genera)}")
+        if seq_leak:
+            raise RuntimeError(f"Eval C exact-sequence leak into train: {len(seq_leak)}")
+
+        X_eval_c = extract_features(eval_c_df["nucleotides"].tolist())
+        knn_c = KNeighborsClassifier(n_neighbors=1, metric="cosine", n_jobs=-1)
+        knn_c.fit(X_train, train_df["genus_name"].astype(str).tolist())
+        genus_preds_c = knn_c.predict(X_eval_c).tolist()
+        true_genera_c = eval_c_df["genus_name"].astype(str).tolist()
+        genus_acc_c = float(accuracy_score(true_genera_c, genus_preds_c))
+
+        train_genus_tax = {}
+        for _, row in train_df.iterrows():
+            g = str(row.get("genus_name", ""))
+            if g and g not in train_genus_tax:
+                train_genus_tax[g] = {
+                    "family": str(row.get("family_name", "")),
+                    "order": str(row.get("order_name", "")),
+                }
+
+        true_families_c = eval_c_df["family_name"].astype(str).tolist()
+        pred_families_c = [train_genus_tax.get(g, {}).get("family", "") for g in genus_preds_c]
+        valid_f_c = [(t, p) for t, p in zip(true_families_c, pred_families_c)
+                     if t and p and t != "nan" and p != "nan"]
+        family_acc_c = float(accuracy_score(*zip(*valid_f_c))) if valid_f_c else 0.0
+
+        true_orders_c = eval_c_df["order_name"].astype(str).tolist()
+        pred_orders_c = [train_genus_tax.get(g, {}).get("order", "") for g in genus_preds_c]
+        valid_o_c = [(t, p) for t, p in zip(true_orders_c, pred_orders_c)
+                     if t and p and t != "nan" and p != "nan"]
+        order_acc_c = float(accuracy_score(*zip(*valid_o_c))) if valid_o_c else 0.0
+
+        print(f"  Genus: {genus_acc_c:.4f}")
+        print(f"  Family: {family_acc_c:.4f}")
+        print(f"  Order: {order_acc_c:.4f}")
+        print("  Species exact-match is not reported: held-out species are absent from the classifier/reference labels.")
+
+        eval_c_true = {
+            "protocol": "pretraining_and_supervised_training_blind_holdout",
+            "reference_split": "supervised_train.csv",
+            "query_split": "eval_c_unseen_species.csv",
+            "n_reference_sequences": int(len(train_df)),
+            "n_query_sequences": int(len(eval_c_df)),
+            "n_query_species": int(eval_c_df["species_name"].nunique()),
+            "n_query_genera": int(eval_c_df["genus_name"].nunique()),
+            "query_genera_missing_from_train": 0,
+            "species_leak_into_seen_splits": 0,
+            "sequence_leak_into_train": 0,
+            "species_exact_match_accuracy": None,
+            "species_exact_match_note": "Not applicable for this classifier/kNN protocol because query species are absent from reference labels.",
+            "genus": {"accuracy": genus_acc_c},
+            "family": {"accuracy": family_acc_c, "n_total": len(valid_f_c)},
+            "order": {"accuracy": order_acc_c, "n_total": len(valid_o_c)},
+        }
+
     # Save
     results = {
         "experiment": "curriculum_6mer",
         "tokenization": "6-mer",
         "vocab_size": KMER_VOCAB_SIZE,
+        "max_tokens": args.max_tokens,
+        "loss_scales": loss_scales,
         "epochs": args.epochs,
+        "checkpoint": checkpoint_path,
         "test_accuracies": {k: float(v) for k, v in test_accs.items()},
         "eval_a_unseen_genera": eval_a,
         "eval_b_genus_seen_genera": eval_b_genus,
+        "eval_c_true_unseen_species_seen_genera": eval_c_true,
     }
 
     output_path = os.path.join(args.output_dir, "curriculum_6mer_results.json")

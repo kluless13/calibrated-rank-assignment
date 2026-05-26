@@ -1,0 +1,153 @@
+{
+  "schema_version": "marinemamba-run-ledger-v1",
+  "created_utc": "2026-05-26T00:00:00Z",
+  "updated_utc": "2026-05-26T09:45:00Z",
+  "purpose": "Canonical local ledger for the open-candidate COI bridge, corrected Global_eDNA validation, ecological posterior sweep, and taxonomy-enriched 12S reanalysis.",
+  "guardrails": [
+    "Do not treat COI and 12S as apples-to-apples marker comparisons.",
+    "Do not treat real Global_eDNA sample validation as independent visual-census truth; it is validation against the published Global_eDNA taxonomic table.",
+    "Report sequence-only, co-occurrence, and geographic-prior variants as separate ablations.",
+    "Treat COI open-candidate retrieval as a diagnostic fish-tree bridge until species/genus metrics improve."
+  ],
+  "protocol_fixes": [
+    {
+      "file": "scripts/edna/ingest_global_edna_dryad.py",
+      "change": "Join library sample IDs such as SPY180761_01 to field metadata using base SPY code SPY180761."
+    },
+    {
+      "file": "scripts/edna/build_global_edna_query_input.py",
+      "change": "Carry province and site35/site30/site25/site20/site10/site5 into Global_eDNA sample_query_map.csv for ecological-prior ablations."
+    },
+    {
+      "file": "scripts/edna/eval_global_edna_geographic_prior_rerank.py",
+      "change": "New independent RLS visual-census geographic prior reranker for Global_eDNA predictions."
+    }
+  ],
+  "input_builds": {
+    "coi_fish_tree": {
+      "output_dir": "data/coi/stalder_inputs/fish_tree",
+      "candidate_species": 11638,
+      "reference_species": 4370,
+      "reference_sequences": 90223,
+      "zero_shot_queries": 17063,
+      "zero_shot_species": 1294
+    },
+    "global_edna_multisource_teleo": {
+      "output_dir": "data/edna/real_edna_queries/global_tropical_multisource_teleo",
+      "query_asvs": 10995,
+      "query_species": 666,
+      "sample_query_rows": 58299,
+      "samples": 3587,
+      "metadata_rows_with_lat_lon": 57966,
+      "metadata_rows_with_site_name": 57968
+    }
+  },
+  "remote_results": {
+    "coi_fish_tree_phylo_mamba_hier_strong": {
+      "host": "h200",
+      "remote_dir": "results/coi_fish_tree_phylo_mamba_hier_strong",
+      "local_dir": "results/remote_runs/2026-05-26/h200/coi_fish_tree_phylo_mamba_hier_strong",
+      "command": "python3 scripts/edna/train_12s_phylo_mamba.py --input-dir data/coi/stalder_inputs/fish_tree --output-dir results/coi_fish_tree_phylo_mamba_hier_strong --tree-embedding-npz results/edna_12s_multisource_phylo_mamba/tree_embeddings.npz --max-seq-len 700 --embed-dim 128 --train-epochs 40 --batch-size 64 --top-k 50 --pooling masked_mean --loss-mode hierarchical_contrastive --temperature 0.07 --species-positive-weight 1.0 --genus-positive-weight 0.5 --family-positive-weight 0.2 --order-positive-weight 0.05 --seed 1206",
+      "metrics_percent": {
+        "species_top1_top5_top10": [0.06, 0.66, 1.11],
+        "genus_top1_top5_top10": [3.44, 10.02, 15.19],
+        "family_top1_top5_top10": [24.1, 35.83, 41.19],
+        "order_top1_top5_top10": [38.89, 50.33, 55.64]
+      }
+    },
+    "global_edna_multisource_teleo_hier_strong_seed1207_predictions": {
+      "host": "rtx_pro",
+      "local_dir": "results/remote_runs/2026-05-26/rtx_pro/global_edna_multisource_teleo_hier_strong_seed1207_predictions",
+      "query_level_metrics_percent": {
+        "species_top1_top5_top10": [3.34, 6.03, 7.24],
+        "genus_top1_top5_top10": [6.84, 12.11, 14.99],
+        "family_top1_top5_top10": [23.71, 30.71, 33.88],
+        "order_top1_top5_top10": [27.69, 36.43, 40.88]
+      }
+    }
+  },
+  "taxonomy_enriched_reanalysis": {
+    "exact_teleo_hier_strong_seed1207": {
+      "output_dir": "results/reanalysis/2026-05-26_taxonomy_enriched/teleo_hier_strong_seed1207",
+      "metrics_percent": {
+        "species_top1_top5_top10": [0.98, 6.84, 12.29],
+        "genus_top1_top5_top10": [19.69, 38.41, 43.16],
+        "family_top1_top5_top10": [50.84, 63.55, 69.27],
+        "order_top1_top5_top10": [75.84, 82.26, 85.47]
+      }
+    },
+    "broad_12s_hier_strong": {
+      "output_dir": "results/reanalysis/2026-05-26_taxonomy_enriched/broad_hier_strong",
+      "metrics_percent": {
+        "species_top1_top5_top10": [0.22, 2.05, 3.25],
+        "genus_top1_top5_top10": [10.32, 23.11, 29.47],
+        "family_top1_top5_top10": [33.57, 48.57, 53.95],
+        "order_top1_top5_top10": [50.42, 63.85, 68.7]
+      }
+    }
+  },
+  "global_edna_validation": {
+    "sequence_only": {
+      "output_dir": "results/edna/global_tropical_validation/multisource_teleo_hier_strong_seed1207",
+      "asv_metrics_percent": {
+        "species_top1_top5_top10": [4.34, 8.0, 11.43],
+        "genus_top1_top5_top10": [12.67, 22.94, 27.89],
+        "family_top1_top5_top10": [37.52, 46.23, 49.79],
+        "order_top1_top5_top10": [39.2, 51.1, 54.78]
+      },
+      "sample_top1_jaccard_percent": {
+        "species": 3.32,
+        "genus": 10.24,
+        "family": 30.6,
+        "order": 33.8
+      }
+    },
+    "sample_cooccurrence_w005": {
+      "output_dir": "results/edna/global_tropical_validation/multisource_teleo_hier_strong_seed1207_cooccurrence_w005",
+      "asv_metrics_percent": {
+        "species_top1_top5_top10": [4.17, 7.14, 10.74],
+        "genus_top1_top5_top10": [12.35, 22.18, 27.09],
+        "family_top1_top5_top10": [37.08, 46.35, 49.64],
+        "order_top1_top5_top10": [39.07, 50.97, 54.99]
+      },
+      "sample_top1_jaccard_percent": {
+        "species": 3.49,
+        "genus": 10.35,
+        "family": 31.12,
+        "order": 34.51
+      }
+    },
+    "rls_geographic_prior_w005": {
+      "output_dir": "results/edna/global_tropical_validation/multisource_teleo_hier_strong_seed1207_rls_geo_w005",
+      "asv_metrics_percent": {
+        "species_top1_top5_top10": [4.81, 8.74, 12.8],
+        "genus_top1_top5_top10": [13.73, 24.47, 30.2],
+        "family_top1_top5_top10": [36.78, 46.42, 49.79],
+        "order_top1_top5_top10": [39.25, 50.95, 55.03]
+      },
+      "sample_top1_jaccard_percent": {
+        "species": 3.98,
+        "genus": 11.55,
+        "family": 31.22,
+        "order": 34.43
+      },
+      "manifest": "results/edna/global_tropical_validation/multisource_teleo_hier_strong_seed1207_rls_geo_w005/geographic_prior_rerank_manifest.json",
+      "rows_with_nonempty_geographic_prior": 57966
+    },
+    "sweep_summary_csv": "results/edna/global_tropical_validation/posterior_sweep_summary.csv"
+  },
+  "calibration_outputs": [
+    "results/calibration/2026-05-26/teleo_hier_strong_seed1207",
+    "results/calibration/2026-05-26/broad_hier_strong",
+    "results/calibration/2026-05-26/coi_fish_tree_hier_strong",
+    "results/calibration/2026-05-26/global_edna_multisource_teleo_hier_strong_seed1207",
+    "results/calibration/2026-05-26/edna_12s_multisource_blast",
+    "results/calibration/2026-05-26/edna_12s_multisource_rankonly_knn"
+  ],
+  "current_interpretation": [
+    "The strongest eDNA result is the exact-Teleo taxonomy-aware hierarchical Mamba plus explicit ecological-prior ablations, not blanket superiority across all baselines.",
+    "The independent RLS geographic prior is more useful than naive same-sample co-occurrence in the current implementation.",
+    "Real Global_eDNA remains much harder than curated Eval C, which is scientifically useful because it defines the domain-shift problem.",
+    "The COI open-candidate result shows higher-rank phylogenetic signal but needs a better objective or candidate narrowing before species-level reporting."
+  ]
+}

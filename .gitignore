@@ -1,6 +1,13 @@
 # Data (too large for git)
 data/raw/
 data/processed/
+data/processed_clean/
+data/coi/
+data/edna/
+data/phylo/fish_tree_clean_splits/
+data/phylo/fish_tree_clean_phylo_inputs/
+data/phylo/genera_list.txt
+data/phylo/species_list.txt
 *.fasta
 *.fa
 *.tsv

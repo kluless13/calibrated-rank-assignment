@@ -51,7 +51,7 @@ MARINE_TAXA = [
     {"name": "Chaetognatha", "query": "tax:phylum:Chaetognatha", "phylum": "Chaetognatha", "expected": 2000},
     {"name": "Ctenophora", "query": "tax:phylum:Ctenophora", "phylum": "Ctenophora", "expected": 748},
     {"name": "Brachiopoda", "query": "tax:phylum:Brachiopoda", "phylum": "Brachiopoda", "expected": 635},
-    {"name": "Porifera", "query": "tax:phylum:Porifera", "phylum": "Porifera", "expected": 13000},
+    # (Porifera removed here — already listed in core taxa above)
 ]
 
 

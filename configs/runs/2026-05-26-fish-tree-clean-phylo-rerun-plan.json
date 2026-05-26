@@ -1,0 +1,42 @@
+{
+  "created_utc": "2026-05-26T10:35:00Z",
+  "status": "inputs_prepared_not_launched",
+  "purpose": "Strict clean-split COI Fish Tree DNA-to-tree rerun using predeclared Eval C and held-out-genera splits.",
+  "inputs": {
+    "split_manifest": "data/phylo/fish_tree_clean_splits/manifest.json",
+    "eval_c_input_dir": "data/phylo/fish_tree_clean_phylo_inputs/eval_c",
+    "seen_test_input_dir": "data/phylo/fish_tree_clean_phylo_inputs/seen_test",
+    "unseen_genera_input_dir": "data/phylo/fish_tree_clean_phylo_inputs/unseen_genera",
+    "input_manifest": "data/phylo/fish_tree_clean_phylo_inputs/manifest.json",
+    "tree_file": "data/phylo/actinopt_12k_treePL.tre",
+    "taxonomy_csv": "data/phylo/PFC_taxonomy.csv"
+  },
+  "input_counts": {
+    "candidate_tree_species": 11638,
+    "reference_species": 3839,
+    "reference_sequences": 62866,
+    "eval_c_query_species": 531,
+    "eval_c_query_sequences": 11594,
+    "seen_test_species": 3839,
+    "seen_test_sequences": 15763,
+    "unseen_genera_species": 614,
+    "unseen_genera_sequences": 9148
+  },
+  "primary_gpu_command": "python3 scripts/edna/train_12s_phylo_mamba.py --input-dir data/phylo/fish_tree_clean_phylo_inputs/eval_c --output-dir results/coi_fish_tree_clean_phylo_mamba_cosine_dim384 --tree-file data/phylo/actinopt_12k_treePL.tre --max-seq-len 700 --embed-dim 384 --tree-epochs 300 --tree-pairs-per-epoch 1024 --tree-negatives 32 --tree-max-distance-sample 1000 --train-epochs 40 --batch-size 64 --lr 5e-4 --pooling masked_mean --loss-mode cosine --top-k 50 --num-workers 8 --seed 1206",
+  "post_train_commands": {
+    "seen_test_predictions": "python3 scripts/edna/predict_phylo_mamba_checkpoint.py --input-dir data/phylo/fish_tree_clean_phylo_inputs/seen_test --checkpoint results/coi_fish_tree_clean_phylo_mamba_cosine_dim384/phylo_mamba_best.pt --tree-embedding-npz results/coi_fish_tree_clean_phylo_mamba_cosine_dim384/tree_embeddings.npz --output-dir results/coi_fish_tree_clean_phylo_mamba_cosine_dim384_seen_test --tree-file data/phylo/actinopt_12k_treePL.tre --max-seq-len 700 --pooling masked_mean --batch-size 256 --top-k 50 --num-workers 8 --seed 1206",
+    "unseen_genera_predictions": "python3 scripts/edna/predict_phylo_mamba_checkpoint.py --input-dir data/phylo/fish_tree_clean_phylo_inputs/unseen_genera --checkpoint results/coi_fish_tree_clean_phylo_mamba_cosine_dim384/phylo_mamba_best.pt --tree-embedding-npz results/coi_fish_tree_clean_phylo_mamba_cosine_dim384/tree_embeddings.npz --output-dir results/coi_fish_tree_clean_phylo_mamba_cosine_dim384_unseen_genera --tree-file data/phylo/actinopt_12k_treePL.tre --max-seq-len 700 --pooling masked_mean --batch-size 256 --top-k 50 --num-workers 8 --seed 1206",
+    "eval_c_tree_recovery": "python3 scripts/edna/eval_phylo_checkpoint_tree_recovery.py --input-dir data/phylo/fish_tree_clean_phylo_inputs/eval_c --checkpoint results/coi_fish_tree_clean_phylo_mamba_cosine_dim384/phylo_mamba_best.pt --output-dir results/coi_fish_tree_clean_phylo_mamba_cosine_dim384_tree_recovery_eval_c --tree-file data/phylo/actinopt_12k_treePL.tre --embed-dim 384 --max-seq-len 700 --pooling masked_mean --seqs-per-species 10 --max-pairs 50000 --batch-size 256 --num-workers 8 --seed 1206",
+    "unseen_genera_tree_recovery": "python3 scripts/edna/eval_phylo_checkpoint_tree_recovery.py --input-dir data/phylo/fish_tree_clean_phylo_inputs/unseen_genera --checkpoint results/coi_fish_tree_clean_phylo_mamba_cosine_dim384/phylo_mamba_best.pt --output-dir results/coi_fish_tree_clean_phylo_mamba_cosine_dim384_tree_recovery_unseen_genera --tree-file data/phylo/actinopt_12k_treePL.tre --embed-dim 384 --max-seq-len 700 --pooling masked_mean --seqs-per-species 10 --max-pairs 50000 --batch-size 256 --num-workers 8 --seed 1206"
+  },
+  "dry_run_checks": {
+    "eval_c": "results/dry_runs/fish_tree_clean_eval_c_phylo_mamba/dry_run_summary.json",
+    "seen_test": "results/dry_runs/fish_tree_clean_seen_test_phylo_mamba/dry_run_summary.json",
+    "unseen_genera": "results/dry_runs/fish_tree_clean_unseen_genera_phylo_mamba/dry_run_summary.json"
+  },
+  "validation_notes": [
+    "This is the strict Fish Tree rerun and is separate from the 12S/eDNA Stalder-style experiment.",
+    "Eval C species are removed before sequence-model training.",
+    "The first primary objective is cosine DNA-to-tree embedding because the previous hierarchical-contrastive open-candidate model did not reproduce the strong tree-recovery signal."
+  ]
+}

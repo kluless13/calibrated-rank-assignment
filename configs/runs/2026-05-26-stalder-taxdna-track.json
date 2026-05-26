@@ -1,0 +1,254 @@
+{
+  "schema_version": "marinemamba-run-config-v1",
+  "created_utc": "2026-05-26T00:00:00Z",
+  "purpose": "Full Stalder/TAXDNA-style eDNA track: build open-candidate 12S inputs, inventory required external assets, and define the MarineMamba-vs-CNN comparison without pretending a closed-set Eval C species task is equivalent.",
+  "stalder_protocol_summary": {
+    "reference_article": "Stalder et al., Zero-shot deep learning for the annotation of unknown eDNA sequences using co-occurrences and phylogenetic embeddings",
+    "public_code": "data/edna/raw/stalder_taxdna",
+    "marker": "Teleo 12S primer region",
+    "dna_encoder_in_public_code": "Token embedding plus two Conv1d layers followed by an MLP to a learned tree/species embedding.",
+    "critical_components": [
+      "fish tree candidate universe",
+      "species-to-sequence reference JSON",
+      "DNA-to-phylogenetic-embedding model",
+      "real eDNA sample/co-occurrence or geographic context",
+      "species/genus/family/order metrics for species absent from reference sequences"
+    ],
+    "marine_mamba_comparison": "Replace the two-layer CNN sequence encoder with a MarineMamba sequence encoder, while keeping the candidate tree, zero-shot species setup, and ecological-prior ablations explicit."
+  },
+  "local_assets": {
+    "our_tree": "data/phylo/actinopt_12k_treePL.tre",
+    "taxdna_clone": "data/edna/raw/stalder_taxdna",
+    "taxdna_asset_manifest": "data/edna/raw/stalder_taxdna_manifest.json",
+    "note": "The cloned TAXDNA data/checkpoint files are mostly Git LFS pointer files locally unless git-lfs payloads are fetched."
+  },
+  "input_builds": [
+    {
+      "id": "multisource_full_12s_open_candidate",
+      "command": "python3 scripts/edna/build_stalder_sequence_inputs.py --data-dir data/edna/processed_12s_multisource --output-dir data/edna/stalder_inputs/multisource --amplicon none",
+      "purpose": "Use all cleaned multi-source 12S sequences to build the maximum available open-candidate species experiment."
+    },
+    {
+      "id": "multisource_exact_teleo_open_candidate",
+      "command": "python3 scripts/edna/build_stalder_sequence_inputs.py --data-dir data/edna/processed_12s_multisource --output-dir data/edna/stalder_inputs/multisource_teleo --amplicon teleo",
+      "purpose": "Closest marker match to TAXDNA/Stalder; smaller because exact Teleo primers are required."
+    },
+    {
+      "id": "mitohelper_exact_teleo_open_candidate",
+      "command": "python3 scripts/edna/build_stalder_sequence_inputs.py --data-dir data/edna/processed_12s_full --output-dir data/edna/stalder_inputs/mitohelper_full_teleo --amplicon teleo",
+      "purpose": "Mitohelper-only exact Teleo subset for a cleaner single-source Stalder-style control."
+    }
+  ],
+  "real_edna_metadata": {
+    "command": "python3 scripts/edna/fetch_real_edna_metadata.py",
+    "output": "data/edna/raw/real_edna/metadata/real_edna_sources_manifest.json",
+    "sources": [
+      "Scotian Shelf 12S GBIF dataset",
+      "Scotian Shelf companion trawl GBIF dataset",
+      "New Jersey OBIS 12S V5 dataset",
+      "Dryad global tropical eDNA dataset DOI 10.5061/dryad.3xsj3txj2"
+    ]
+  },
+  "real_edna_occurrences": {
+    "fetch_command": "python3 scripts/edna/fetch_real_edna_occurrences.py",
+    "fetch_output": "data/edna/raw/real_edna/occurrences/real_edna_occurrences_manifest.json",
+    "global_tropical_manual_ingest": {
+      "source_dir": "/Users/kluless/Downloads/Global_eDNA",
+      "ingest_command": "python3 scripts/edna/ingest_global_edna_dryad.py --source-dir /Users/kluless/Downloads/Global_eDNA --output-dir data/edna/raw/real_edna/global_tropical",
+      "manifest": "data/edna/raw/real_edna/global_tropical/global_edna_ingest_manifest.json",
+      "sample_species_presence": "data/edna/raw/real_edna/global_tropical/global_edna_sample_species_presence.csv",
+      "teleo_asv_taxonomy": "data/edna/raw/real_edna/global_tropical/global_edna_teleo_asv_taxonomy.csv",
+      "counts": {
+        "metadata_samples": 534,
+        "unique_samples_with_species": 7323,
+        "unique_species_observed": 1214,
+        "tree_matched_species": 765,
+        "tree_matched_non_other_samples": 3587,
+        "tree_matched_non_other_species": 666,
+        "tree_matched_non_other_presence_rows": 36693,
+        "sample_species_presence_rows": 76627
+      },
+      "reference_overlap": {
+        "multisource": {
+          "presence_rows_in_reference": 35546,
+          "presence_rows_tree_zero_shot_candidate": 24623,
+          "unique_species_in_reference": 365,
+          "unique_species_tree_zero_shot_candidate": 400,
+          "non_other_presence_rows_in_reference": 20042,
+          "non_other_presence_rows_tree_zero_shot_candidate": 16651,
+          "non_other_unique_species_in_reference": 315,
+          "non_other_unique_species_tree_zero_shot_candidate": 351
+        },
+        "multisource_teleo": {
+          "presence_rows_in_reference": 26885,
+          "presence_rows_tree_zero_shot_candidate": 33284,
+          "unique_species_in_reference": 232,
+          "unique_species_tree_zero_shot_candidate": 533,
+          "non_other_presence_rows_in_reference": 14797,
+          "non_other_presence_rows_tree_zero_shot_candidate": 21896,
+          "non_other_unique_species_in_reference": 204,
+          "non_other_unique_species_tree_zero_shot_candidate": 462
+        }
+      }
+    },
+    "overlap_command": "python3 scripts/edna/eval_real_edna_occurrence_overlap.py",
+    "overlap_output": "results/edna/real_edna_overlap/real_edna_occurrence_overlap.csv",
+    "regional_prior_commands": [
+      "python3 scripts/edna/build_regional_candidate_priors.py --output-dir data/edna/real_edna_priors/same_source_radius250 --radius-km 250",
+      "python3 scripts/edna/build_regional_candidate_priors.py --output-dir data/edna/real_edna_priors/cross_source_radius250 --radius-km 250 --cross-source"
+    ],
+    "regional_prior_outputs": [
+      "data/edna/real_edna_priors/same_source_radius250/regional_candidate_priors.csv",
+      "data/edna/real_edna_priors/cross_source_radius250/regional_candidate_priors.csv"
+    ],
+    "downloaded_records": {
+      "scotian_shelf_12s_gbif": 466,
+      "scotian_shelf_trawl_gbif": 2592,
+      "new_jersey_12s_obis": 1604
+    }
+  },
+  "zero_shot_prediction_contract": {
+    "evaluator": "scripts/edna/eval_zero_shot_candidate_predictions.py",
+    "templates": [
+      "results/edna/zero_shot_templates/multisource/zero_shot_prediction_template.csv",
+      "results/edna/zero_shot_templates/multisource_teleo/zero_shot_prediction_template.csv",
+      "results/edna/zero_shot_templates/mitohelper_full_teleo/zero_shot_prediction_template.csv",
+      "results/edna/zero_shot_templates/rcrux_cleaned/zero_shot_prediction_template.csv"
+    ],
+    "prediction_format": "One row per query processid with ranked tree labels in top_tree_labels, or rank_1/rank_2/... columns. Labels use Genus_species tree labels."
+  },
+  "completed_gpu_results": [
+    {
+      "id": "exact_teleo_taxdna_cnn",
+      "local_result_dir": "results/remote_runs/2026-05-26/rtx_pro/edna_12s_multisource_teleo_taxdna_cnn",
+      "input_dir": "data/edna/stalder_inputs/multisource_teleo",
+      "candidate_species": 11638,
+      "reference_species": 949,
+      "reference_sequences": 1507,
+      "zero_shot_queries": 716,
+      "zero_shot_species": 327,
+      "metrics_percent": {
+        "species_top1_top5_top10": [0.0, 0.0, 0.28],
+        "genus_top1_top5_top10": [18.72, 27.51, 28.91],
+        "family_top1_top5_top10": [29.47, 42.04, 46.37],
+        "order_top1_top5_top10": [31.01, 54.19, 68.72]
+      }
+    },
+    {
+      "id": "exact_teleo_mamba_contrastive_t007",
+      "local_result_dir": "results/remote_runs/2026-05-26/rtx_pro/edna_12s_multisource_teleo_phylo_mamba_contrastive",
+      "command_summary": "--pooling masked_mean --loss-mode contrastive --temperature 0.07",
+      "metrics_percent": {
+        "species_top1_top5_top10": [0.14, 0.14, 1.4],
+        "genus_top1_top5_top10": [15.92, 27.93, 33.24],
+        "family_top1_top5_top10": [32.26, 52.51, 58.1],
+        "order_top1_top5_top10": [48.32, 61.73, 65.78]
+      }
+    },
+    {
+      "id": "exact_teleo_mamba_hierarchical_conservative",
+      "local_result_dir": "results/remote_runs/2026-05-26/h200/edna_12s_multisource_teleo_phylo_mamba_hier_conservative",
+      "command_summary": "--pooling masked_mean --loss-mode hierarchical_contrastive --temperature 0.07 --species-positive-weight 1.0 --genus-positive-weight 0.25 --family-positive-weight 0.1 --order-positive-weight 0.03",
+      "metrics_percent": {
+        "species_top1_top5_top10": [0.0, 5.31, 7.96],
+        "genus_top1_top5_top10": [22.07, 41.06, 48.18],
+        "family_top1_top5_top10": [37.15, 59.64, 65.92],
+        "order_top1_top5_top10": [50.98, 74.58, 77.93]
+      }
+    },
+    {
+      "id": "exact_teleo_mamba_hierarchical_strong",
+      "local_result_dir": "results/remote_runs/2026-05-26/rtx_pro/edna_12s_multisource_teleo_phylo_mamba_hier_strong",
+      "command_summary": "--pooling masked_mean --loss-mode hierarchical_contrastive --temperature 0.07 --species-positive-weight 1.0 --genus-positive-weight 0.5 --family-positive-weight 0.2 --order-positive-weight 0.05",
+      "metrics_percent": {
+        "species_top1_top5_top10": [0.7, 8.66, 11.73],
+        "genus_top1_top5_top10": [18.3, 39.39, 47.91],
+        "family_top1_top5_top10": [34.92, 56.98, 66.06],
+        "order_top1_top5_top10": [53.77, 76.26, 82.26]
+      },
+      "interpretation": "Best exact-Teleo open-candidate result so far; beats the exact-Teleo TAXDNA-style CNN on species/genus/family/order top10."
+    },
+    {
+      "id": "exact_teleo_mamba_hierarchical_strong_seed1207",
+      "local_result_dir": "results/remote_runs/2026-05-26/rtx_pro/edna_12s_multisource_teleo_phylo_mamba_hier_strong_seed1207",
+      "command_summary": "--pooling masked_mean --loss-mode hierarchical_contrastive --temperature 0.07 --species-positive-weight 1.0 --genus-positive-weight 0.5 --family-positive-weight 0.2 --order-positive-weight 0.05 --seed 1207",
+      "metrics_percent": {
+        "species_top1_top5_top10": [0.98, 6.84, 12.29],
+        "genus_top1_top5_top10": [19.69, 38.41, 43.16],
+        "family_top1_top5_top10": [36.45, 54.33, 62.57],
+        "order_top1_top5_top10": [50.28, 73.32, 78.35]
+      },
+      "interpretation": "Seeded repeat confirms the exact-Teleo hierarchical contrastive result remains ahead of the exact-Teleo TAXDNA-style CNN on all top10 rank metrics."
+    },
+    {
+      "id": "exact_teleo_mamba_hierarchical_hybrid",
+      "local_result_dir": "results/remote_runs/2026-05-26/rtx_pro/edna_12s_multisource_teleo_phylo_mamba_hier_hybrid",
+      "command_summary": "--pooling masked_mean --loss-mode hierarchical_hybrid --temperature 0.07 --cosine-weight 0.1 --contrastive-weight 1.0 --species-positive-weight 1.0 --genus-positive-weight 0.5 --family-positive-weight 0.2 --order-positive-weight 0.05 --seed 1206",
+      "metrics_percent": {
+        "species_top1_top5_top10": [0.28, 5.73, 9.64],
+        "genus_top1_top5_top10": [20.67, 39.66, 45.39],
+        "family_top1_top5_top10": [36.45, 58.24, 64.53],
+        "order_top1_top5_top10": [45.39, 70.53, 80.03]
+      },
+      "interpretation": "Still beats the exact-Teleo CNN on all top10 rank metrics, but is weaker than pure hierarchical contrastive; the cosine tree-embedding term is not the main result."
+    },
+    {
+      "id": "exact_teleo_mamba_hierarchical_genusonly",
+      "local_result_dir": "results/remote_runs/2026-05-26/rtx_pro/edna_12s_multisource_teleo_phylo_mamba_hier_genusonly",
+      "command_summary": "--pooling masked_mean --loss-mode hierarchical_contrastive --temperature 0.07 --species-positive-weight 1.0 --genus-positive-weight 0.5 --family-positive-weight 0.0 --order-positive-weight 0.0 --seed 1206",
+      "metrics_percent": {
+        "species_top1_top5_top10": [2.09, 9.64, 12.15],
+        "genus_top1_top5_top10": [25.98, 41.2, 48.6],
+        "family_top1_top5_top10": [36.45, 56.56, 64.39],
+        "order_top1_top5_top10": [43.99, 65.92, 73.04]
+      },
+      "interpretation": "Shows most species/genus gain can come from genus-level positives, but full hierarchy is better for order-level recovery."
+    },
+    {
+      "id": "broad_multisource_mamba_hierarchical_strong",
+      "local_result_dir": "results/remote_runs/2026-05-26/h200/edna_12s_multisource_phylo_mamba_hier_strong",
+      "input_dir": "data/edna/stalder_inputs/multisource",
+      "candidate_species": 11638,
+      "reference_species": 1637,
+      "reference_sequences": 15592,
+      "zero_shot_queries": 3566,
+      "zero_shot_species": 795,
+      "command_summary": "--pooling masked_mean --loss-mode hierarchical_contrastive --temperature 0.07 --species-positive-weight 1.0 --genus-positive-weight 0.5 --family-positive-weight 0.2 --order-positive-weight 0.05 --seed 1206",
+      "metrics_percent": {
+        "species_top1_top5_top10": [0.22, 2.05, 3.25],
+        "genus_top1_top5_top10": [10.32, 23.11, 29.47],
+        "family_top1_top5_top10": [21.4, 41.17, 47.25],
+        "order_top1_top5_top10": [30.62, 57.32, 62.68]
+      },
+      "interpretation": "Transfers the hierarchy gain to the harder broad 12S setting; beats the broad TAXDNA-style CNN on all top10 rank metrics."
+    }
+  ],
+  "gpu_runs_to_schedule_when_vast_is_funded": [
+    {
+      "id": "tree_embedding_rerun",
+      "goal": "Train or reproduce fish tree embeddings on the local tree candidate universe and save checkpoint/config.",
+      "first_command": "python3 scripts/edna/train_12s_phylo_mamba.py --input-dir data/edna/stalder_inputs/multisource_teleo --output-dir results/edna_12s_multisource_teleo_phylo_mamba --max-seq-len 128 --embed-dim 128 --tree-epochs 300 --train-epochs 40 --batch-size 64 --top-k 50"
+    },
+    {
+      "id": "taxdna_cnn_baseline_on_our_inputs",
+      "goal": "Run the public two-layer CNN DNA-to-tree embedding baseline on our exact input JSONs.",
+      "first_command": "python3 scripts/edna/train_taxdna_cnn_baseline.py --input-dir data/edna/stalder_inputs/multisource_teleo --output-dir results/edna_12s_multisource_teleo_taxdna_cnn --tree-embedding-npz results/edna_12s_multisource_teleo_phylo_mamba/tree_embeddings.npz --max-seq-len 128 --embed-dim 128 --train-epochs 50 --batch-size 16 --top-k 50"
+    },
+    {
+      "id": "marinemamba_dna_to_tree_embedding",
+      "goal": "Train MarineMamba to map 12S sequences to the same tree embedding space; evaluate zero-shot species top-k and rank metrics.",
+      "broad_12s_command": "python3 scripts/edna/train_12s_phylo_mamba.py --input-dir data/edna/stalder_inputs/multisource --output-dir results/edna_12s_multisource_phylo_mamba --max-seq-len 2048 --embed-dim 128 --tree-epochs 300 --train-epochs 40 --batch-size 32 --top-k 50"
+    },
+    {
+      "id": "sequence_only_vs_geographic_prior",
+      "goal": "Ablate sequence-only, simple regional prior, learned co-occurrence prior, and sequence plus prior on real eDNA samples.",
+      "rerank_script": "scripts/edna/eval_regional_prior_rerank.py"
+    }
+  ],
+  "reporting_guardrails": [
+    "Do not compare COI to Stalder's 12S setup as apples-to-apples.",
+    "Do not report closed-set Eval C species accuracy when Eval C species are absent from training/reference labels.",
+    "Separate full-12S experiments from exact-Teleo marker experiments.",
+    "Report BLAST/VSEARCH and confidence/no-call baselines beside neural models."
+  ]
+}

@@ -1,0 +1,74 @@
+{
+  "schema_version": "marinemamba-run-config-v1",
+  "created_utc": "2026-05-26T00:00:00Z",
+  "purpose": "High-upside 12S reruns that remove species loss for missing-species Eval C. The hypothesis is that species-level cross-entropy overfits seen species and hurts genus/family/order embedding structure.",
+  "code_change": {
+    "script": "scripts/11_curriculum_6mer.py",
+    "change": "Added order/family/genus/species loss scale arguments. Defaults preserve prior behavior. These runs use --species-loss-scale 0."
+  },
+  "runs": [
+    {
+      "id": "edna_12s_multisource_6mer_rankonly",
+      "host": "h200",
+      "data_dir": "data/edna/processed_12s_multisource",
+      "output_dir": "results/edna_12s_multisource_6mer_rankonly",
+      "command": ".venv/bin/python scripts/11_curriculum_6mer.py --data-dir data/edna/processed_12s_multisource --output-dir results/edna_12s_multisource_6mer_rankonly --epochs 60 --batch-size 64 --max-tokens 1995 --species-loss-scale 0",
+      "baseline_to_beat": {
+        "multisource_blast_eval_c": {
+          "genus": 0.7970984879444217,
+          "family": 0.9344094809971394,
+          "order": 0.9638332652227217
+        },
+        "previous_multisource_6mer_eval_c": {
+          "genus": 0.6673407482305359,
+          "family": 0.8339737108190091,
+          "order": 0.8871587462082912
+        }
+      }
+    },
+    {
+      "id": "edna_12s_rcrux_cleaned_6mer_rankonly",
+      "host": "rtx_pro",
+      "data_dir": "data/edna/processed_12s_rcrux_cleaned",
+      "output_dir": "results/edna_12s_rcrux_cleaned_6mer_rankonly",
+      "command": ".venv/bin/python scripts/11_curriculum_6mer.py --data-dir data/edna/processed_12s_rcrux_cleaned --output-dir results/edna_12s_rcrux_cleaned_6mer_rankonly --epochs 80 --batch-size 32 --max-tokens 255 --species-loss-scale 0",
+      "baseline_to_beat": {
+        "rcrux_cleaned_vsearch_eval_c": {
+          "genus": 0.8657074340527577,
+          "family": 0.9544364508393285,
+          "order": 0.9900990099009901
+        },
+        "previous_rcrux_cleaned_6mer_eval_c": {
+          "genus": 0.8369304556354916,
+          "family": 0.9328537170263789,
+          "order": 0.9437652811735942
+        }
+      }
+    },
+    {
+      "id": "edna_12s_mare_mage_6mer_rankonly",
+      "host": "rtx_pro",
+      "data_dir": "data/edna/processed_12s_mare_mage",
+      "output_dir": "results/edna_12s_mare_mage_6mer_rankonly",
+      "command": ".venv/bin/python scripts/11_curriculum_6mer.py --data-dir data/edna/processed_12s_mare_mage --output-dir results/edna_12s_mare_mage_6mer_rankonly --epochs 60 --batch-size 64 --max-tokens 1995 --species-loss-scale 0",
+      "baseline_to_beat": {
+        "mare_mage_blast_eval_c": {
+          "genus": 0.8545454545454545,
+          "family": 0.9368983957219251,
+          "order": 0.946524064171123
+        },
+        "mare_mage_vsearch_eval_c": {
+          "genus": 0.8434873949579832,
+          "family": 0.9275210084033614,
+          "order": 0.9401260504201681
+        },
+        "previous_mare_mage_6mer_eval_c": {
+          "genus": 0.7815126050420168,
+          "family": 0.8707983193277311,
+          "order": 0.8834033613445378
+        }
+      }
+    }
+  ],
+  "interpretation_rule": "Only treat this as a positive 12S neural result if it beats or clearly complements BLAST/VSEARCH in a pre-specified setting such as Eval C genus, high-confidence/no-call curves, or nearest-reference-distance bins."
+}

@@ -1,6 +1,6 @@
 # Data
 
-Raw and processed data files are not tracked in git (too large). Data is fetched live during experiments.
+Raw, processed, and generated experiment input files are not tracked in git. The repository tracks code, run configuration ledgers, and documentation; data products should be regenerated or copied from the recorded run outputs.
 
 ## Source
 
@@ -39,6 +39,20 @@ data/
 │   └── dataset_stats.json        # Summary statistics
 └── README.md
 ```
+
+Additional generated directories used by newer workflows are also ignored:
+
+```
+data/
+├── processed_clean/              # audited COI splits
+├── coi/                          # COI open-candidate inputs
+├── edna/                         # 12S/eDNA references, splits, priors, and query packs
+└── phylo/
+    ├── fish_tree_clean_splits/       # strict COI Fish Tree split tables
+    └── fish_tree_clean_phylo_inputs/ # DNA-to-tree input packs
+```
+
+The tracked Fish Tree file remains at `data/phylo/actinopt_12k_treePL.tre`.
 
 ## Data format (BarcodeMamba-compatible CSV)
 

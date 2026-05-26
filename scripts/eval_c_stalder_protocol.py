@@ -1,18 +1,29 @@
 """
-Eval C: Stalder Protocol — Unseen Species, Seen Genera
+Eval C: Stalder-INSPIRED protocol — unseen species, seen genera.
 
-Matches Stalder et al. (2025) evaluation exactly:
-  - Hold out species that the model never saw during training
-  - Their genera ARE in training (other species from same genus)
-  - Evaluate: can the model assign the correct genus to a new species?
+KNOWN LIMITATION — DO NOT cite results as zero-shot generalisation.
+This script performs species holdout AFTER the model has already been
+trained on those species in scripts/09_multihead_hierarchical.py. The
+backbone was trained on the full supervised_train.csv and the
+pre_training.csv self-supervised pass also includes them, so the
+held-out species are not new to the model. Results reflect partial
+memorisation, not true unseen-species generalisation.
 
-This runs AFTER script 09 finishes — loads the saved model checkpoint,
-creates a species-holdout split, and evaluates.
+Diagnostic value: shows the model's k-NN behaviour on a Stalder-style
+split of its own training data. Useful for sanity-checking the
+hierarchical heads, not for direct external comparison.
 
-Stalder's numbers to beat:
-  - Genus: 50.7% (DNA only)
-  - Family: 80.5% (DNA only)
-  - Order: 86.7% (DNA only)
+For a true zero-shot Stalder-style evaluation, species holdout must be
+applied BEFORE pretraining and supervised training. See the v2 rerun
+plan in the README.
+
+Local choices vs Stalder et al. (2025) even when run correctly:
+  - holdout_fraction=0.2, min_species_per_genus=3 (our choices)
+  - Stalder used 12S; we use COI
+  - Different datasets and splits — Stalder-inspired, not exact
+
+Stalder's reported numbers (for context, not a fair head-to-head):
+  - Genus: 50.7%   Family: 80.5%   Order: 86.7%  (DNA only)
 
 Usage:
     python3 scripts/eval_c_stalder_protocol.py --data-dir data/processed --output-dir results

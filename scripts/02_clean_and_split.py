@@ -24,7 +24,7 @@ def main():
     print("MARINEMAMBA DATA CLEANING & SPLITS")
     print("=" * 60)
 
-    df = pd.read_csv(RAW_DIR / "merged_barcodes.csv")
+    df = pd.read_csv(RAW_DIR / "merged_marine_barcodes.csv")
     initial = len(df)
     print(f"Loaded {initial} records")
 

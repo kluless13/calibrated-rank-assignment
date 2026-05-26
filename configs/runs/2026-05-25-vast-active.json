@@ -1,0 +1,130 @@
+{
+  "schema_version": "marinemamba-run-config-v1",
+  "created_utc": "2026-05-25T16:26:17Z",
+  "local_repo": {
+    "path": "/Users/kluless/marinemamba",
+    "branch": "main",
+    "head_commit_at_start": "b9c297e95f9c54fd1e760003c8a5eeee3c5722fb",
+    "note": "Working tree contains uncommitted cleanup and eDNA-track changes. No commits or pushes were made."
+  },
+  "data_manifests": {
+    "coi_v3_clean": {
+      "path": "data/processed_clean/splits_manifest.json",
+      "sha256": "8d50d3a9c0f7906b27ce1321cc1641602e0c306467021d4da6a244ae8bb6e8d3"
+    },
+    "mitohelper_12s_full": {
+      "path": "data/edna/processed_12s_full/splits_manifest.json",
+      "sha256": "143ed54246a393caa70a68499167e986e2b43b806fd7d225c0261ca8d04f61af"
+    },
+    "rcrux_12s_cleaned": {
+      "path": "data/edna/processed_12s_rcrux_cleaned/splits_manifest.json",
+      "sha256": "ec5248faf166af2c4b6be4d681ea8dcebec24d976e0534ce83e305c7507e899f"
+    },
+    "rcrux_12s_blast_seeds": {
+      "path": "data/edna/processed_12s_rcrux_blast_seeds/splits_manifest.json",
+      "sha256": "4c072f28fb28cd7a888318e11efa9a638c8a8051edf532a26ce3c04994db200d"
+    }
+  },
+  "script_hashes": {
+    "scripts/09_multihead_hierarchical.py": "5b33772282ad4971b6af6a9260388cc51db8b40bb47ca1da13fa3af10cf27567",
+    "scripts/11_curriculum_6mer.py": "5c077eb6d3bb108063f5ad3252778c91e75992168580f84e84b9b00ae3a6aca3",
+    "scripts/eval_true_eval_c_kmer.py": "cdb55a38de93c6dd3e3839e8e43a1d960b8bb1f6bcbca97852b574fbb7573ef2",
+    "scripts/edna/build_12s_splits.py": "00e0721746687c2fbe86b620ae6fb423143cc12f8f8a598473b6cd887a08b489"
+  },
+  "hosts": {
+    "h200": {
+      "ssh": "ssh -p 50952 root@93.91.156.89",
+      "hostname": "e963252d3d5a",
+      "gpu": "NVIDIA H200 NVL",
+      "vram_mib": 143771,
+      "workspace": "/workspace/marinemamba",
+      "workspace_free_at_snapshot": "153G",
+      "python_env": "/workspace/marinemamba/.venv",
+      "torch": "2.12.0+cu130"
+    },
+    "rtx_pro": {
+      "ssh": "ssh -p 25513 root@140.150.159.1",
+      "hostname": "e8266768c6da",
+      "gpu": "NVIDIA RTX PRO 6000 Blackwell Workstation Edition",
+      "vram_mib": 97887,
+      "workspace": "/workspace/marinemamba",
+      "workspace_free_at_snapshot": "153G",
+      "python_env": "/workspace/marinemamba/.venv",
+      "torch": "2.12.0+cu130"
+    }
+  },
+  "runs": [
+    {
+      "id": "coi_v3_kmer6_true_eval_c",
+      "host": "h200",
+      "pid_at_snapshot": 8930,
+      "status_at_snapshot": "running",
+      "data_dir": "data/processed_clean",
+      "output_dir": "results/coi_v3_kmer",
+      "local_result_copy": "results/remote_runs/2026-05-25/h200/coi_v3_kmer",
+      "command": ".venv/bin/python scripts/eval_true_eval_c_kmer.py --data-dir data/processed_clean --output-dir results/coi_v3_kmer --k 6",
+      "parameters": {
+        "k": 6,
+        "nearest_neighbors": 1,
+        "metric": "cosine",
+        "max_features": null
+      }
+    },
+    {
+      "id": "coi_v3_6mer_curriculum",
+      "host": "h200",
+      "pid_at_snapshot": 6786,
+      "status_at_snapshot": "running",
+      "data_dir": "data/processed_clean",
+      "output_dir": "results/coi_v3_6mer",
+      "local_result_copy": "results/remote_runs/2026-05-25/h200/coi_v3_6mer",
+      "command": ".venv/bin/python scripts/11_curriculum_6mer.py --data-dir data/processed_clean --output-dir results/coi_v3_6mer --epochs 40 --batch-size 256",
+      "parameters": {
+        "epochs": 40,
+        "batch_size": 256,
+        "tokenization": "6-mer",
+        "checkpoint": "results/coi_v3_6mer/curriculum_6mer_best.pt"
+      },
+      "last_completed_epoch_at_snapshot": 5
+    },
+    {
+      "id": "edna_12s_full_6mer_curriculum",
+      "host": "h200",
+      "pid_at_snapshot": 10749,
+      "status_at_snapshot": "running",
+      "data_dir": "data/edna/processed_12s_full",
+      "output_dir": "results/edna_12s_full_6mer",
+      "local_result_copy": "results/remote_runs/2026-05-25/h200/edna_12s_full_6mer",
+      "command": ".venv/bin/python scripts/11_curriculum_6mer.py --data-dir data/edna/processed_12s_full --output-dir results/edna_12s_full_6mer --epochs 40 --batch-size 128",
+      "parameters": {
+        "epochs": 40,
+        "batch_size": 128,
+        "tokenization": "6-mer",
+        "checkpoint": "results/edna_12s_full_6mer/curriculum_6mer_best.pt"
+      },
+      "last_completed_epoch_at_snapshot": 38
+    },
+    {
+      "id": "coi_v3_char_multihead",
+      "host": "rtx_pro",
+      "pid_at_snapshot": 3810,
+      "status_at_snapshot": "running",
+      "data_dir": "data/processed_clean",
+      "output_dir": "results/coi_v3_char",
+      "local_result_copy": "results/remote_runs/2026-05-25/rtx_pro/coi_v3_char",
+      "command": ".venv/bin/python scripts/09_multihead_hierarchical.py --data-dir data/processed_clean --output-dir results/coi_v3_char --epochs 40 --batch-size 192",
+      "parameters": {
+        "epochs": 40,
+        "batch_size": 192,
+        "tokenization": "character",
+        "checkpoint": "results/coi_v3_char/multihead_best.pt"
+      },
+      "last_completed_epoch_at_snapshot": 8
+    }
+  ],
+  "monitoring": {
+    "heartbeat_id": "check-marinemamba-vast-jobs",
+    "interval_minutes": 30,
+    "instructions": "Pull result JSONs and summarize true Eval C metrics when each remote run finishes."
+  }
+}

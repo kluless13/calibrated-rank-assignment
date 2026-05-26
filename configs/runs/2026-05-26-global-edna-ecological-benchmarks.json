@@ -1,0 +1,91 @@
+{
+  "schema_version": "marinemamba-run-ledger-v1",
+  "created_utc": "2026-05-26T00:00:00Z",
+  "purpose": "Global_eDNA ecological-context and BLAST benchmark summary after corrected metadata join.",
+  "input_dir": "data/edna/real_edna_queries/global_tropical_multisource_teleo",
+  "summary_outputs": {
+    "overall_metrics_csv": "results/edna/global_tropical_validation/summary/global_edna_method_overall_metrics.csv",
+    "stratified_metrics_csv": "results/edna/global_tropical_validation/summary/global_edna_method_stratified_metrics.csv",
+    "summary_manifest": "results/edna/global_tropical_validation/summary/global_edna_method_summary_manifest.json"
+  },
+  "scripts_added": [
+    "scripts/edna/eval_global_edna_blast_baseline.py",
+    "scripts/edna/eval_global_edna_rls_prior_only.py",
+    "scripts/edna/summarize_global_edna_benchmarks.py"
+  ],
+  "method_results_percent": {
+    "mamba_sequence_only": {
+      "output_dir": "results/edna/global_tropical_validation/multisource_teleo_hier_strong_seed1207",
+      "species_top1_top10": [4.34, 11.43],
+      "genus_top1_top10": [12.67, 27.89],
+      "family_top1": 37.52,
+      "order_top1": 39.20,
+      "sample_species_top1_jaccard": 3.32,
+      "sample_genus_top1_jaccard": 10.24
+    },
+    "mamba_rls_geographic_site20_w005": {
+      "output_dir": "results/edna/global_tropical_validation/multisource_teleo_hier_strong_seed1207_rls_geo_site20_w005",
+      "species_top1_top10": [5.60, 12.90],
+      "genus_top1_top10": [14.47, 29.90],
+      "family_top1": 37.76,
+      "order_top1": 40.00,
+      "sample_species_top1_jaccard": 4.19,
+      "sample_genus_top1_jaccard": 11.86
+    },
+    "rls_prior_only_site20": {
+      "output_dir": "results/edna/global_tropical_validation/rls_prior_only_site20",
+      "species_top1_top10": [0.00, 2.03],
+      "genus_top1_top10": [2.79, 11.89],
+      "family_top1": 7.01,
+      "order_top1": 7.62,
+      "sample_species_top1_jaccard": 0.00,
+      "sample_genus_top1_jaccard": 1.03
+    },
+    "blast_train_reference": {
+      "output_dir": "results/edna/global_tropical_validation/blast_train_reference",
+      "species_top1_top10": [25.72, 33.96],
+      "genus_top1_top10": [46.23, 51.44],
+      "family_top1": 57.70,
+      "order_top1": 55.55,
+      "sample_species_top1_jaccard": 18.15,
+      "sample_genus_top1_jaccard": 36.03
+    }
+  },
+  "stratified_findings_percent": {
+    "blast_reference_species": {
+      "rows": 24018,
+      "species_top1_top10": [62.42, 82.43],
+      "genus_top1_top10": [85.80, 89.01],
+      "family_top1": 90.95,
+      "order_top1": 91.05
+    },
+    "blast_zero_shot_species": {
+      "rows": 34281,
+      "species_top1_top10": [0.00, 0.00],
+      "genus_top1_top10": [18.51, 25.12],
+      "family_top1": 34.41,
+      "order_top1": 30.68
+    },
+    "mamba_rls_site20_reference_species": {
+      "rows": 24018,
+      "species_top1_top10": [13.13, 27.18],
+      "genus_top1_top10": [26.39, 51.39],
+      "family_top1": 63.97,
+      "order_top1": 63.98
+    },
+    "mamba_rls_site20_zero_shot_species": {
+      "rows": 34281,
+      "species_top1_top10": [0.32, 2.90],
+      "genus_top1_top10": [6.11, 14.85],
+      "family_top1": 19.40,
+      "order_top1": 23.21
+    }
+  },
+  "interpretation": [
+    "BLAST against train-only references is the dominant real Global_eDNA baseline when the true species is already represented in the reference database.",
+    "BLAST cannot recover exact missing-reference species by construction; zero-shot species top1/top10 is 0/0 in that stratum.",
+    "The RLS ecological prior alone is weak, so Mamba+RLS gains are not just prior leakage.",
+    "Mamba+RLS improves over Mamba sequence-only overall and is the better neural ecological-context variant, but it does not beat BLAST on this real validation.",
+    "Use separate reporting for reference-hit and missing-reference regimes, with BLAST retained as the strong reference-hit baseline."
+  ]
+}

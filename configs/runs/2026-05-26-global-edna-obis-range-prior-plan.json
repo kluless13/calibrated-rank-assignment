@@ -1,0 +1,45 @@
+{
+  "created_utc": "2026-05-26T10:26:00Z",
+  "status": "prepared_not_fetched",
+  "purpose": "External OBIS occurrence-prior benchmark for real Global_eDNA validation.",
+  "approval_boundary": {
+    "requires_user_approval": true,
+    "reason": "Live fetch sends Global_eDNA site-derived geographic polygons to the OBIS API.",
+    "no_workaround": true
+  },
+  "inputs": {
+    "sample_query_map": "data/edna/real_edna_queries/global_tropical_multisource_teleo/sample_query_map.csv",
+    "candidate_species": "data/edna/real_edna_queries/global_tropical_multisource_teleo/candidate_species.csv",
+    "mamba_predictions": "results/remote_runs/2026-05-26/rtx_pro/global_edna_multisource_teleo_hier_strong_seed1207_predictions/zero_shot_candidate_predictions.csv"
+  },
+  "dry_run_outputs": {
+    "query_plan_csv": "data/edna/raw/real_edna/global_obis_range_prior_site20_pad05/obis_site_query_plan.csv",
+    "manifest_json": "data/edna/raw/real_edna/global_obis_range_prior_site20_pad05/obis_range_prior_manifest.json"
+  },
+  "fetch_config": {
+    "site_column": "site20",
+    "site_cells": 30,
+    "samples_with_site20_lat_lon": 3474,
+    "taxonid": 10194,
+    "taxonid_note": "OBIS/WoRMS Actinopterygii identifier observed in OBIS occurrence records.",
+    "bbox_pad_degrees": 0.5,
+    "page_size": 500,
+    "max_records_per_site": 5000
+  },
+  "scripts": {
+    "fetch": "scripts/edna/fetch_global_edna_obis_range_prior.py",
+    "rerank_eval": "scripts/edna/eval_global_edna_occurrence_prior_rerank.py",
+    "prior_only_eval": "scripts/edna/eval_global_edna_occurrence_prior_only.py",
+    "summary": "scripts/edna/summarize_global_edna_benchmarks.py"
+  },
+  "planned_outputs_after_approval": {
+    "prior_counts_csv": "data/edna/raw/real_edna/global_obis_range_prior_site20_pad05/obis_site_prior_counts.csv",
+    "reranked_predictions": "results/edna/global_tropical_validation/multisource_teleo_hier_strong_seed1207_obis_site20_w005/occurrence_prior_reranked_predictions.csv",
+    "prior_only_predictions": "results/edna/global_tropical_validation/obis_prior_only_site20/occurrence_prior_only_predictions.csv"
+  },
+  "interpretation": [
+    "This tests a Stalder-adjacent ecological context idea using independent occurrence records rather than sample-label co-occurrence.",
+    "OBIS sampling effort is heterogeneous, so compare OBIS-only, Mamba-only, Mamba+OBIS, RLS-only, and Mamba+RLS before reporting conclusions.",
+    "Do not use Global_eDNA truth labels to build the prior."
+  ]
+}

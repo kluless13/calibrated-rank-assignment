@@ -1,0 +1,128 @@
+{
+  "schema_version": "marinemamba-run-config-v1",
+  "created_utc": "2026-05-26T00:00:00Z",
+  "purpose": "12S/eDNA SSM matrix after BLAST/VSEARCH baselines. These runs test short MiFish-like rCRUX data and independent Mare-MAGE 12S, avoiding another blind Mitohelper full-12S repeat.",
+  "decision_context": {
+    "mitohelper_full_12s_corrected_neural": {
+      "result_json": "results/remote_runs/2026-05-25/h200/edna_12s_full_6mer_maxtok1995/curriculum_6mer_results.json",
+      "eval_c": {
+        "genus": 0.6755177907594264,
+        "family": 0.8000531067445565,
+        "order": 0.8143133462282398
+      },
+      "interpretation": "Not a positive 12S neural result; underperforms k-mer and BLAST/VSEARCH baselines."
+    },
+    "12s_similarity_baselines_copied_from_rtx": {
+      "result_dir": "results/remote_runs/2026-05-25/rtx_pro/edna_12s_similarity",
+      "eval_c_summary": {
+        "mitohelper_full_vsearch": {
+          "genus": 0.7622841965471447,
+          "family": 0.95403825717322,
+          "order": 0.9728519451441365
+        },
+        "rcrux_cleaned_vsearch": {
+          "genus": 0.8657074340527577,
+          "family": 0.9544364508393285,
+          "order": 0.9900990099009901
+        },
+        "rcrux_blast_seed_vsearch": {
+          "genus": 0.8431001890359168,
+          "family": 0.9546313799621928,
+          "order": 0.9822485207100592
+        },
+        "mare_mage_vsearch": {
+          "genus": 0.8434873949579832,
+          "family": 0.9275210084033614,
+          "order": 0.9401260504201681
+        }
+      }
+    }
+  },
+  "runs": [
+    {
+      "id": "edna_12s_rcrux_cleaned_6mer",
+      "host": "rtx_pro",
+      "data_dir": "data/edna/processed_12s_rcrux_cleaned",
+      "output_dir": "results/edna_12s_rcrux_cleaned_6mer",
+      "command": ".venv/bin/python scripts/11_curriculum_6mer.py --data-dir data/edna/processed_12s_rcrux_cleaned --output-dir results/edna_12s_rcrux_cleaned_6mer --epochs 60 --batch-size 32 --max-tokens 255",
+      "rationale": "Primary short MiFish-like 12S SSM test; avoids full-12S truncation and matches eDNA amplicon length."
+    },
+    {
+      "id": "edna_12s_rcrux_cleaned_char",
+      "host": "rtx_pro",
+      "data_dir": "data/edna/processed_12s_rcrux_cleaned",
+      "output_dir": "results/edna_12s_rcrux_cleaned_char",
+      "command": ".venv/bin/python scripts/09_multihead_hierarchical.py --data-dir data/edna/processed_12s_rcrux_cleaned --output-dir results/edna_12s_rcrux_cleaned_char --epochs 60 --batch-size 32",
+      "rationale": "Character-token control on short 12S, where the fixed 660 bp character window is not truncating the marker."
+    },
+    {
+      "id": "edna_12s_rcrux_blast_seed_6mer",
+      "host": "rtx_pro",
+      "data_dir": "data/edna/processed_12s_rcrux_blast_seeds",
+      "output_dir": "results/edna_12s_rcrux_blast_seed_6mer",
+      "command": ".venv/bin/python scripts/11_curriculum_6mer.py --data-dir data/edna/processed_12s_rcrux_blast_seeds --output-dir results/edna_12s_rcrux_blast_seed_6mer --epochs 60 --batch-size 32 --max-tokens 255",
+      "rationale": "Larger rCRUX short-amplicon robustness run."
+    },
+    {
+      "id": "edna_12s_mare_mage_6mer",
+      "host": "h200",
+      "data_dir": "data/edna/processed_12s_mare_mage",
+      "output_dir": "results/edna_12s_mare_mage_6mer",
+      "command": ".venv/bin/python scripts/11_curriculum_6mer.py --data-dir data/edna/processed_12s_mare_mage --output-dir results/edna_12s_mare_mage_6mer --epochs 40 --batch-size 64 --max-tokens 1995",
+      "rationale": "Independent full-12S reference source, hierarchy-cleaned, with full token window."
+    },
+    {
+      "id": "edna_12s_multisource_6mer",
+      "host": "rtx_pro",
+      "data_dir": "data/edna/processed_12s_multisource",
+      "output_dir": "results/edna_12s_multisource_6mer",
+      "split_command": "python3 scripts/edna/build_multisource_12s_splits.py --out-dir data/edna/processed_12s_multisource",
+      "command": ".venv/bin/python scripts/11_curriculum_6mer.py --data-dir data/edna/processed_12s_multisource --output-dir results/edna_12s_multisource_6mer --epochs 40 --batch-size 64 --max-tokens 1995",
+      "local_kmer_result": "results/edna_12s_multisource_kmer/eval_c_kmer6_results.json",
+      "local_kmer_eval_c": {
+        "genus": 0.7547017189079879,
+        "family": 0.9134479271991911,
+        "order": 0.953690596562184
+      },
+      "split_stats": {
+        "total_sequences": 42836,
+        "total_species": 12428,
+        "total_genera": 3448,
+        "train_size": 13479,
+        "val_size": 2050,
+        "test_size": 3883,
+        "eval_c_size": 4945
+      },
+      "rationale": "Merged-source 12S test after cross-source exact-sequence deduplication and global Eval C holdout. This tests whether source diversity helps the SSM learn a more robust 12S embedding."
+    },
+    {
+      "id": "edna_12s_multisource_similarity",
+      "host": "rtx_pro",
+      "data_dir": "data/edna/processed_12s_multisource",
+      "output_dir": "results/edna_12s_multisource_similarity",
+      "command": ".venv/bin/python scripts/eval_similarity_baselines.py --data-dir data/edna/processed_12s_multisource --output-dir results/edna_12s_multisource_similarity --methods blast vsearch --threads 64 --blast-task megablast --vsearch-min-id 0.5",
+      "copied_result_json": "results/remote_runs/2026-05-25/rtx_pro/edna_12s_multisource_similarity/similarity_baselines_results.json",
+      "eval_c": {
+        "blast": {
+          "genus": 0.7970984879444217,
+          "family": 0.9344094809971394,
+          "order": 0.9638332652227217,
+          "no_hit": 0.01031344792719919
+        },
+        "vsearch": {
+          "genus": 0.782476730068798,
+          "family": 0.9279643868878996,
+          "order": 0.9627681100768919,
+          "no_hit": 0.0006066734074823053
+        }
+      },
+      "rationale": "BLAST/VSEARCH comparison for the merged-source 12S split, run with moderate CPU parallelism while the RTX GPU trains the SSM."
+    }
+  ],
+  "deferred_runs": [
+    {
+      "id": "edna_12s_mare_mage_char",
+      "reason": "The char script currently has fixed MAX_SEQ_LEN=660, which would truncate many full-12S records. Only run after adding a max-length argument or on short-amplicon sources."
+    }
+  ]
+}

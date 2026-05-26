@@ -136,7 +136,8 @@ def get_curriculum_weights(epoch, total_epochs):
         return {"order": 0.2, "family": 0.3, "genus": 0.5, "species": 1.0}
 
 
-def train_multihead(model, train_dl, val_dl, epochs=40, lr=8e-4, device="cuda"):
+def train_multihead(model, train_dl, val_dl, epochs=40, lr=8e-4, device="cuda",
+                    checkpoint_path="results/multihead_best.pt"):
     """Train with curriculum learning."""
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=0.01)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs)
@@ -203,7 +204,7 @@ def train_multihead(model, train_dl, val_dl, epochs=40, lr=8e-4, device="cuda"):
         if avg_val_loss < best_val_loss:
             best_val_loss = avg_val_loss
             patience_counter = 0
-            torch.save(model.state_dict(), "results/multihead_best.pt")
+            torch.save(model.state_dict(), checkpoint_path)
         else:
             patience_counter += 1
             if patience_counter >= patience and epoch >= min_epochs:
@@ -213,7 +214,7 @@ def train_multihead(model, train_dl, val_dl, epochs=40, lr=8e-4, device="cuda"):
                 print(f"  Patience hit at epoch {epoch+1} but min_epochs={min_epochs}, continuing...")
                 patience_counter = 0  # Reset to keep going
 
-    model.load_state_dict(torch.load("results/multihead_best.pt", weights_only=True))
+    model.load_state_dict(torch.load(checkpoint_path, weights_only=True))
     return model
 
 
@@ -307,7 +308,11 @@ def main():
 
     # Train
     print("\nTraining with curriculum learning...")
-    model = train_multihead(model, train_dl, val_dl, epochs=args.epochs, lr=args.lr, device=device)
+    checkpoint_path = os.path.join(args.output_dir, "multihead_best.pt")
+    model = train_multihead(
+        model, train_dl, val_dl, epochs=args.epochs, lr=args.lr,
+        device=device, checkpoint_path=checkpoint_path,
+    )
 
     # Evaluate
     print("\n=== EVALUATION ===")
@@ -424,14 +429,90 @@ def main():
         "order": {"accuracy": float(order_acc_seen)},
     }
 
+    # Eval C: true unseen species held out before pretraining/training.
+    eval_c_true = None
+    eval_c_path = data_dir / "eval_c_unseen_species.csv"
+    if eval_c_path.exists():
+        print("\n--- Eval C: True Unseen Species, Seen Genera ---")
+        eval_c_df = pd.read_csv(eval_c_path)
+
+        train_species = set(train_df["species_name"].dropna())
+        all_seen_species = set(all_df["species_name"].dropna())
+        eval_c_species = set(eval_c_df["species_name"].dropna())
+        eval_c_genera = set(eval_c_df["genus_name"].dropna())
+        train_genera = set(train_df["genus_name"].dropna())
+
+        species_leak = eval_c_species & all_seen_species
+        missing_genera = eval_c_genera - train_genera
+        seq_leak = set(eval_c_df["nucleotides"]) & set(train_df["nucleotides"])
+        if species_leak:
+            raise RuntimeError(f"Eval C species leak into seen splits: {len(species_leak)}")
+        if missing_genera:
+            raise RuntimeError(f"Eval C genera missing from train: {len(missing_genera)}")
+        if seq_leak:
+            raise RuntimeError(f"Eval C exact-sequence leak into train: {len(seq_leak)}")
+
+        X_eval_c = extract_features(eval_c_df["nucleotides"].tolist())
+        knn_eval_c = KNeighborsClassifier(n_neighbors=1, metric="cosine", n_jobs=-1)
+        knn_eval_c.fit(X_train, train_df["genus_name"].astype(str).tolist())
+        genus_preds_eval_c = knn_eval_c.predict(X_eval_c).tolist()
+        true_genera_eval_c = eval_c_df["genus_name"].astype(str).tolist()
+        genus_acc_eval_c = float(accuracy_score(true_genera_eval_c, genus_preds_eval_c))
+
+        train_genus_tax = {}
+        for _, row in train_df.iterrows():
+            g = str(row.get("genus_name", ""))
+            if g and g not in train_genus_tax:
+                train_genus_tax[g] = {
+                    "family": str(row.get("family_name", "")),
+                    "order": str(row.get("order_name", "")),
+                }
+
+        true_families_eval_c = eval_c_df["family_name"].astype(str).tolist()
+        pred_families_eval_c = [train_genus_tax.get(g, {}).get("family", "") for g in genus_preds_eval_c]
+        valid_f_c = [(t, p) for t, p in zip(true_families_eval_c, pred_families_eval_c)
+                     if t and p and t != "nan" and p != "nan"]
+        family_acc_eval_c = float(accuracy_score(*zip(*valid_f_c))) if valid_f_c else 0.0
+
+        true_orders_eval_c = eval_c_df["order_name"].astype(str).tolist()
+        pred_orders_eval_c = [train_genus_tax.get(g, {}).get("order", "") for g in genus_preds_eval_c]
+        valid_o_c = [(t, p) for t, p in zip(true_orders_eval_c, pred_orders_eval_c)
+                     if t and p and t != "nan" and p != "nan"]
+        order_acc_eval_c = float(accuracy_score(*zip(*valid_o_c))) if valid_o_c else 0.0
+
+        print(f"  Genus: {genus_acc_eval_c:.4f}")
+        print(f"  Family: {family_acc_eval_c:.4f}")
+        print(f"  Order: {order_acc_eval_c:.4f}")
+        print("  Species exact-match is not reported: held-out species are absent from the classifier/reference labels.")
+
+        eval_c_true = {
+            "protocol": "pretraining_and_supervised_training_blind_holdout",
+            "reference_split": "supervised_train.csv",
+            "query_split": "eval_c_unseen_species.csv",
+            "n_reference_sequences": int(len(train_df)),
+            "n_query_sequences": int(len(eval_c_df)),
+            "n_query_species": int(eval_c_df["species_name"].nunique()),
+            "n_query_genera": int(eval_c_df["genus_name"].nunique()),
+            "query_genera_missing_from_train": 0,
+            "species_leak_into_seen_splits": 0,
+            "sequence_leak_into_train": 0,
+            "species_exact_match_accuracy": None,
+            "species_exact_match_note": "Not applicable for this classifier/kNN protocol because query species are absent from reference labels.",
+            "genus": {"accuracy": genus_acc_eval_c},
+            "family": {"accuracy": family_acc_eval_c, "n_total": len(valid_f_c)},
+            "order": {"accuracy": order_acc_eval_c, "n_total": len(valid_o_c)},
+        }
+
     # Save
     results = {
         "experiment": "multihead_hierarchical_curriculum",
         "epochs": args.epochs,
+        "checkpoint": checkpoint_path,
         "pretrain_ckpt": ckpt or "none",
         "test_accuracies": {k: float(v) for k, v in test_accs.items()},
         "eval_a_unseen_genera": hierarchical,
         "eval_b_seen_genera_unseen_species": seen_genera_eval,
+        "eval_c_true_unseen_species_seen_genera": eval_c_true,
     }
 
     output_path = os.path.join(args.output_dir, "multihead_hierarchical_results.json")

@@ -41,9 +41,9 @@ new embedding or a claim to beat alignment.
 
 ## 1. Introduction
 
-DNA barcoding identifies organisms from a short, standardised stretch of DNA, and
-environmental DNA (eDNA) extends this to detecting species from traces shed into
-water, soil, or air. Both rest on the same final step: comparing a query barcode
+DNA barcoding identifies organisms from a short, standardised stretch of DNA
+(Hebert et al. 2003), and environmental DNA (eDNA) extends this to detecting
+species from traces shed into water, soil, or air. Both rest on the same final step: comparing a query barcode
 against a **reference database** of barcodes from identified specimens. That step
 silently assumes the reference is adequately populated for the query's taxon.
 
@@ -82,12 +82,15 @@ This paper makes the following contributions:
    references to sequence next (§4.7).
 
 We are explicit about prior art. Learned barcode-to-tree embeddings (Stalder et
-al. 2025; DEPP, Jiang et al. 2023), vector barcode retrieval (TaxoTagger; LISA;
-BarcodeBERT), and unsupervised sequence clustering (BIN; ABGD; ASAP; and neural
-variants) all exist. We use them; we do not claim to have invented them, and we
-do not claim to beat alignment-based methods at fine-grained clustering. Our
-novelty is the integration, the calibrated missing-reference regime, and the
-open-set detection axis.
+al. 2025; DEPP, Jiang et al. 2023), the learned-vs-k-mer representation comparison
+(kf2vec, Rachtman et al. 2025), neural barcode foundation models and vector
+retrieval (BarcodeBERT, Millan Arias et al. 2026; DNABERT-S, Zhou et al. 2025;
+TaxoTagger), probabilistic rank-aware assignment (PROTAX, Somervuo et al. 2016;
+IDTAXA, Murali et al. 2018), and unsupervised sequence clustering (BIN,
+Ratnasingham & Hebert 2013; ABGD; ASAP) all exist. We use them; we do not claim
+to have invented them, and we do not claim to beat alignment-based methods at
+fine-grained clustering. Our novelty is the integration, the calibrated
+missing-reference regime, and the open-set detection axis.
 
 ## 2. The pipeline
 
@@ -99,9 +102,10 @@ evidence, before a final calibrated decision:
    fixed-length vector; approximate nearest-neighbour search returns candidate
    references in well under a millisecond per query (§4.1), so the pipeline scales
    to large samples.
-2. **Classical sequence checks.** BLAST, VSEARCH, and pairwise p-distance measure
-   how close the retrieved candidates truly are — the field's trusted, precise
-   workhorses, retained as strong baselines and as evidence, not discarded.
+2. **Classical sequence checks.** BLAST (Camacho et al. 2009), VSEARCH (Rognes et
+   al. 2016), and pairwise p-distance measure how close the retrieved candidates
+   truly are — the field's trusted, precise workhorses, retained as strong
+   baselines and as evidence, not discarded.
 3. **Tree-aware evidence and open-set novelty (DETECT).** The encoder is trained
    so that embedding distance approximates phylogenetic distance; a query is
    placed relative to its neighbourhood on the tree, and a detector flags whether
@@ -122,7 +126,8 @@ calibratable.
 ## 3. Evaluation design
 
 **Splits.** All experiments use fish COI sequences mapped to the Fish Tree of
-Life (Rabosky et al. 2018; 11,638 species). Splits are audited to be leakage-free
+Life (Rabosky et al. 2018; ~11,638 species with genetic data on the
+time-calibrated actinopterygian backbone). Splits are audited to be leakage-free
 — species are removed before training, with exact-sequence and process-ID
 deduplication, and an overlap audit confirming zero intersection. Two held-out
 regimes test progressively harder novelty:
@@ -207,8 +212,9 @@ We benchmark **unsupervised species rediscovery** — clustering reads from
 held-out species and asking whether clusters recover true taxa — against
 established tools (Figure 6). At cluster count fixed to the true species number
 (KMeans, k = 531), classical alignment clustering leads at the fine ranks:
-VSEARCH 0.915 and cd-hit 0.886 species AMI versus our embedding's 0.874, while a
-frozen invertebrate-trained foundation model (BarcodeBERT) reaches only 0.492.
+VSEARCH 0.915 and cd-hit (Fu et al. 2012) 0.886 species AMI versus our
+embedding's 0.874, while a frozen invertebrate-trained foundation model
+(BarcodeBERT) reaches only 0.492.
 **Our embedding wins at family level (0.756 vs 0.720 / 0.692)**, capturing coarse
 tree structure that identity-threshold clustering fragments.
 
@@ -246,10 +252,11 @@ evidence rather than overconfident extrapolation.
 ### 4.6 Classical and placement comparators, and the marker ceiling
 
 We retain classical methods as strong baselines, not foils: BLAST recovers family
-at 98.1% (Eval C) top-10, and we ran Fernando-*style* completeness sweeps with
-EPA-ng and official APPLES 2.0.11 (30 sweeps over random and family-stratified
-backbones). We report these as matched-protocol comparators and explicitly do not
-claim exact reproduction of any prior placement-completeness protocol.
+at 98.1% (Eval C) top-10, and we ran Fernando-*style* (Fernando et al. 2025)
+completeness sweeps with EPA-ng (Barbera et al. 2019) and official APPLES 2.0.11
+(Balaban et al. 2020; 30 sweeps over random and family-stratified backbones). We
+report these as matched-protocol comparators and explicitly do not claim exact
+reproduction of any prior placement-completeness protocol.
 
 The **marker ceiling** motivates the whole rank-adaptive stance. For the shorter
 12S region used in much fish eDNA, species-level resolution is frequently
@@ -279,9 +286,10 @@ deployable rather than merely aspirational.
 
 **Conceded priorities.** We build on, and do not claim to have invented: learned
 barcode-to-tree embeddings (Stalder et al. 2025, on the same fish tree; DEPP and
-its descendants), the learned-vs-k-mer representation comparison (kf2vec), vector
-barcode retrieval (TaxoTagger, LISA, BarcodeBERT), and unsupervised species
-delimitation (BIN, ABGD, ASAP, and neural clustering). We also do not claim to
+its descendants), the learned-vs-k-mer representation comparison (kf2vec), neural
+barcode foundation models and vector retrieval (BarcodeBERT, DNABERT-S,
+TaxoTagger), probabilistic rank-aware assignment (PROTAX, IDTAXA), and
+unsupervised species delimitation (BIN, ABGD, ASAP, and neural clustering). We also do not claim to
 beat BLAST or VSEARCH — at species clustering they remain the gold standard, and
 where we match them we do so only by sacrificing the tree geometry. The
 contribution is the integration, the calibrated missing-reference regime, the
@@ -318,12 +326,91 @@ All figures are in `manuscript_assets/experiment1/figures/` (PNG + PDF) and are
 regenerated by `scripts/figures/plot_experiment1_figures.py` and
 `scripts/figures/plot_manuscript_figures.py`.
 
-## 7. Key references (to be completed)
+## 7. References
 
-Rabosky et al. 2018 (Fish Tree of Life); Stalder et al. 2025 (fish 12S
-phylogenetic embedding); Jiang et al. 2023 (DEPP); BarcodeBERT; kf2vec;
-Ratnasingham & Hebert 2013 (BIN); Puillandre et al. (ABGD); Barbera et al.
-(EPA-ng); Balaban et al. (APPLES); TaxoTagger; LISA. Full bibliography pending.
+Balaban, M., Sarmashghi, S. & Mirarab, S. (2020). APPLES: Scalable Distance-Based
+Phylogenetic Placement with or without Alignments. *Systematic Biology*, 69(3),
+566–578. https://doi.org/10.1093/sysbio/syz063
+
+Barbera, P., Kozlov, A.M., Czech, L., Morel, B., Darriba, D., Flouri, T. &
+Stamatakis, A. (2019). EPA-ng: Massively Parallel Evolutionary Placement of
+Genetic Sequences. *Systematic Biology*, 68(2), 365–369.
+https://doi.org/10.1093/sysbio/syy054
+
+Camacho, C., Coulouris, G., Avagyan, V., Ma, N., Papadopoulos, J., Bealer, K. &
+Madden, T.L. (2009). BLAST+: architecture and applications. *BMC Bioinformatics*,
+10, 421. https://doi.org/10.1186/1471-2105-10-421
+
+Fernando, M.A.T.M., Fu, J. & Adamowicz, S.J. (2025). Testing Phylogenetic
+Placement Accuracy of DNA Barcode Sequences on a Fish Backbone Tree: Implications
+of Backbone Tree Completeness and Species Representation. *Ecology and Evolution*,
+15(1), e70817. https://doi.org/10.1002/ece3.70817
+
+Fu, L., Niu, B., Zhu, Z., Wu, S. & Li, W. (2012). CD-HIT: accelerated for
+clustering the next-generation sequencing data. *Bioinformatics*, 28(23),
+3150–3152. https://doi.org/10.1093/bioinformatics/bts565
+
+Hebert, P.D.N., Cywinska, A., Ball, S.L. & deWaard, J.R. (2003). Biological
+identifications through DNA barcodes. *Proceedings of the Royal Society B:
+Biological Sciences*, 270(1512), 313–321. https://doi.org/10.1098/rspb.2002.2218
+
+Jiang, Y., Balaban, M., Zhu, Q. & Mirarab, S. (2023). DEPP: Deep Learning Enables
+Extending Species Trees using Single Genes. *Systematic Biology*, 72(1), 17–34.
+https://doi.org/10.1093/sysbio/syac031
+
+Millan Arias, P., Sadjadi, N., Safari, M., Gong, Z., Wang, A.T., Haurum, J.B.,
+Zarubiieva, I., Steinke, D., Kari, L., Chang, A.X., Lowe, S.C. & Taylor, G.W.
+(2026). BarcodeBERT: transformers for biodiversity analyses. *Bioinformatics
+Advances*, 6(1), vbag054. https://doi.org/10.1093/bioadv/vbag054
+
+Murali, A., Bhargava, A. & Wright, E.S. (2018). IDTAXA: a novel approach for
+accurate taxonomic classification of microbiome sequences. *Microbiome*, 6, 140.
+https://doi.org/10.1186/s40168-018-0521-5
+
+Puillandre, N., Brouillet, S. & Achaz, G. (2021). ASAP: assemble species by
+automatic partitioning. *Molecular Ecology Resources*, 21(2), 609–620.
+https://doi.org/10.1111/1755-0998.13281
+
+Puillandre, N., Lambert, A., Brouillet, S. & Achaz, G. (2012). ABGD, Automatic
+Barcode Gap Discovery for primary species delimitation. *Molecular Ecology*,
+21(8), 1864–1877. https://doi.org/10.1111/j.1365-294X.2011.05239.x
+
+Rabosky, D.L., Chang, J., Title, P.O., Cowman, P.F., Sallan, L., Friedman, M., et
+al. (2018). An inverse latitudinal gradient in speciation rate for marine fishes.
+*Nature*, 559(7714), 392–395. https://doi.org/10.1038/s41586-018-0273-1
+
+Rachtman, E., Jiang, Y. & Mirarab, S. (2025). Machine Learning Enables
+Alignment-Free Distance Calculation and Phylogenetic Placement Using k-Mer
+Frequencies (kf2vec). *Molecular Ecology Resources*, e70055.
+https://doi.org/10.1111/1755-0998.70055
+
+Ratnasingham, S. & Hebert, P.D.N. (2013). A DNA-Based Registry for All Animal
+Species: The Barcode Index Number (BIN) System. *PLoS ONE*, 8(7), e66213.
+https://doi.org/10.1371/journal.pone.0066213
+
+Rognes, T., Flouri, T., Nichols, B., Quince, C. & Mahé, F. (2016). VSEARCH: a
+versatile open source tool for metagenomics. *PeerJ*, 4, e2584.
+https://doi.org/10.7717/peerj.2584
+
+Somervuo, P., Koskela, S., Pennanen, J., Nilsson, R.H. & Ovaskainen, O. (2016).
+Unbiased probabilistic taxonomic classification for DNA barcoding.
+*Bioinformatics*, 32(19), 2920–2927. https://doi.org/10.1093/bioinformatics/btw346
+
+Stalder, S., Sanchez, T., Volpi, M., Manel, S., Mouillot, D., Auber, A., Bruno,
+M., Marques, V., Albouy, C. & Pellissier, L. (2025). Zero-shot deep learning for
+the annotation of unknown eDNA sequences using co-occurrences and phylogenetic
+embeddings. *PLOS Computational Biology*, 21(12), e1013776.
+https://doi.org/10.1371/journal.pcbi.1013776
+
+Zhou, Z., Wu, W., Ho, H., Wang, J., Shi, L., Davuluri, R.V., Wang, Z. & Liu, H.
+(2025). DNABERT-S: pioneering species differentiation with species-aware DNA
+embeddings. *Bioinformatics*, btaf188. https://doi.org/10.1093/bioinformatics/btaf188
+
+TaxoTagger (software). MycoAI: semantic search for DNA barcode taxonomy
+identification. https://github.com/MycoAI/taxotagger
+
+*Methods software also used: CD-HIT (Fu et al. 2012) and the original CD-HIT
+(Li & Godzik 2006, Bioinformatics 22:1658–1659).*
 
 ---
 

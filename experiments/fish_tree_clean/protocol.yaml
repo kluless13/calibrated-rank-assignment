@@ -1,0 +1,62 @@
+name: fish_tree_clean
+date: "2026-05-26"
+goal: >
+  Rerun the COI Fish Tree DNA-to-tree experiment with clean predeclared splits,
+  including Eval C unseen species and a stricter held-out-genera split.
+
+inputs:
+  eval_c:
+    path: data/phylo/fish_tree_clean_phylo_inputs/eval_c
+    role: unseen species, seen genera
+  seen_test:
+    path: data/phylo/fish_tree_clean_phylo_inputs/seen_test
+    role: reference-species test queries
+  unseen_genera:
+    path: data/phylo/fish_tree_clean_phylo_inputs/unseen_genera
+    role: held-out genera
+  split_manifest:
+    path: data/phylo/fish_tree_clean_splits/manifest.json
+  tree_file:
+    path: data/phylo/actinopt_12k_treePL.tre
+  taxonomy_csv:
+    path: data/phylo/PFC_taxonomy.csv
+
+model:
+  script: scripts/edna/train_12s_phylo_mamba.py
+  marker: COI
+  max_seq_len: 700
+  embed_dim: 384
+  tree_epochs: 300
+  train_epochs: 40
+  batch_size: 64
+  loss_mode: cosine
+  pooling: masked_mean
+  top_k: 50
+  seed: 1206
+
+followups:
+  seen_test_predictions:
+    script: scripts/edna/predict_phylo_mamba_checkpoint.py
+    input_dir: data/phylo/fish_tree_clean_phylo_inputs/seen_test
+  unseen_genera_predictions:
+    script: scripts/edna/predict_phylo_mamba_checkpoint.py
+    input_dir: data/phylo/fish_tree_clean_phylo_inputs/unseen_genera
+  eval_c_tree_recovery:
+    script: scripts/edna/eval_phylo_checkpoint_tree_recovery.py
+    input_dir: data/phylo/fish_tree_clean_phylo_inputs/eval_c
+  unseen_genera_tree_recovery:
+    script: scripts/edna/eval_phylo_checkpoint_tree_recovery.py
+    input_dir: data/phylo/fish_tree_clean_phylo_inputs/unseen_genera
+
+baselines:
+  sequence_distance:
+    path: results/phylo_tree_distance_baselines_clean/tree_distance_baseline_metrics.json
+    methods:
+      - kmer_cosine
+      - kmer_jaccard
+      - raw_p_distance
+
+notes:
+  - Keep this track separate from 12S/eDNA Stalder-style results.
+  - Treat the legacy tree-recovery run as historical until the clean rerun finishes.
+  - Do not make tree-recovery claims from seen-species-only evaluation.

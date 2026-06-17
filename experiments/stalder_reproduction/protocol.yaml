@@ -1,0 +1,108 @@
+name: stalder_reproduction
+date: "2026-05-30"
+goal: >
+  Reproduce the official Stalder/TAXDNA baseline with official assets, then
+  swap only the DNA encoder for MarineMamba/BarcodeMamba.
+
+official_sources:
+  gitlab_repo: https://gitlab.renkulab.io/dnai/TAXDNA.git
+  renku_project: https://renkulab.io/v2/projects/sdsc/taxdna
+  paper: https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1013776
+  gitlab_datascience_mirror: https://gitlab.datascience.ch/stalder30/TAXDNA
+  container_registry: gitlab-registry.datascience.ch/stalder30/taxdna
+
+local_paths:
+  official_clone: data/edna/raw/stalder_taxdna
+  inventory_manifest: data/edna/raw/stalder_taxdna_manifest.json
+  readiness_manifest: results/edna/stalder_reproduction/asset_readiness.json
+  outputs: results/edna/stalder_reproduction
+  public_reconstruction_outputs: data/edna/cooccurrence_inputs/stalder_public
+
+required_assets:
+  tree:
+    path: data/fish_tree_of_life/actinopt_single.tree
+    must_not_be_lfs_pointer: true
+  species_info:
+    path: data/species_info/species_info.json
+    must_not_be_lfs_pointer: true
+  validation_species:
+    path: data/val_species/val_species.json
+    must_not_be_lfs_pointer: true
+  reference_sequences:
+    path: data/sequence_data/species_sequences.json
+    must_not_be_lfs_pointer: true
+  trained_tree_embedder:
+    glob: trained_models/tree_embedder/**/checkpoints/*.ckpt
+    must_not_be_lfs_pointer: true
+  trained_dna_models:
+    glob: trained_models/dna_models/**/checkpoints/*.ckpt
+    must_not_be_lfs_pointer: true
+  trained_cooccurrence_models:
+    glob: trained_models/co_occ_models/**/checkpoints/*.ckpt
+    must_not_be_lfs_pointer: true
+  config_referenced_data:
+    source: trained_models/**/*.cfg
+    must_exist: true
+
+baseline_to_reproduce:
+  official_cnn:
+    repo_script: src/taxDNA/train_DNA_classification.py
+    role: official TAXDNA DNA encoder baseline
+  official_tree_embedder:
+    repo_script: src/taxDNA/train_tree_embeddings.py
+    role: official tree embedding baseline
+  official_cooccurrence:
+    repo_script: src/taxDNA/train_co_occ_model.py
+    role: official community/range-map co-occurrence model
+
+public_reconstruction:
+  fishglob:
+    source: https://github.com/fishglob/FishGlob_data/tree/main/outputs/Compiled_data
+    zenodo: https://zenodo.org/records/10218308
+    build_script: scripts/edna/build_public_fishglob_taxdna_json.py
+    run_wrapper: experiments/stalder_reproduction/runs/04_build_public_fishglob_cooccurrence.sh
+    output_json: data/edna/cooccurrence_inputs/stalder_public/fishglob_public_taxdna_cooccurrence.json
+    manifest: data/edna/cooccurrence_inputs/stalder_public/fishglob_public_taxdna_manifest.json
+    current_summary:
+      rows_read: 2931610
+      matched_rows: 2279934
+      groups: 214658
+      unique_species: 1211
+      unique_species_with_reference_sequences: 150
+    claim_boundary: public-source TAXDNA-shaped reconstruction, not official processed FISHGLOB.json
+
+encoder_swap:
+  fixed:
+    - tree
+    - candidate species universe
+    - reference sequences
+    - seen/unseen split
+    - co-occurrence data
+    - metric definitions
+  changed:
+    - DNA encoder architecture
+  ssm_script: scripts/edna/train_12s_phylo_mamba.py
+
+reporting:
+  ranks:
+    - species
+    - genus
+    - family
+    - order
+  arms:
+    - single_sequence
+    - community_cooccurrence
+    - range_map_cooccurrence
+    - combined_cooccurrence
+  datasets:
+    - seen_species
+    - unseen_species
+    - real_edna_samples
+
+notes:
+  - Do not mix outputs from this folder with independent taxdna_ssm outputs.
+  - Do not claim exact replication until asset_readiness.json reports ready=true.
+  - Git LFS assets are resolved locally as of 2026-05-30.
+  - Public Renku data connectors, GitLab releases, and GitLab packages did not expose the missing config-referenced JSON folders.
+  - The public container registry image appears to be the Renku application image, not a bundled training-data image.
+  - Public FISHGLOB co-occurrence reconstruction is available locally but remains separate from exact reproduction.

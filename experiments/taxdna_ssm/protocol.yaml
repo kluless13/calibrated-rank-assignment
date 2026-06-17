@@ -1,0 +1,123 @@
+name: taxdna_ssm
+date: "2026-05-26"
+goal: >
+  Reproduce the core TAXDNA-style DNA-to-phylogeny and ecological-context
+  framework using local 12S fish inputs, then swap only the DNA sequence
+  encoder from a compact CNN to the MarineMamba/BarcodeMamba SSM.
+
+inputs:
+  exact_teleo:
+    path: data/edna/stalder_inputs/multisource_teleo
+    max_seq_len: 128
+    role: closest marker-level comparison
+  broad_12s:
+    path: data/edna/stalder_inputs/multisource
+    max_seq_len: 2048
+    role: larger 12S reference experiment
+  real_edna:
+    path: data/edna/real_edna_queries/global_tropical_multisource_teleo
+    role: Global_eDNA sample-level validation
+  obis_prior:
+    path: data/edna/raw/real_edna/global_obis_range_prior_site20_pad05/obis_site_prior_counts.csv
+    role: external occurrence/range prior
+  rls_prior:
+    path: /Users/kluless/Downloads/Global_eDNA/data/RLS/RLS_species_NEW.csv
+    role: visual survey assemblage prior
+  cooccurrence_json:
+    path: data/edna/cooccurrence_inputs/taxdna_ssm
+    role: TAXDNA-shaped co-occurrence model inputs
+  swarm_representatives:
+    path: data/edna/raw/real_edna/global_tropical_swarm_representatives
+    role: TAXDNA-compatible FASTA exported from published Global_eDNA SWARM MOTU tables
+
+fixed_components:
+  tree_file: data/phylo/actinopt_12k_treePL.tre
+  candidate_universe: candidate_species.csv from each input directory
+  tree_embedding_dim: 128
+  top_k: 50
+  seed: 1206
+
+model_arms:
+  cnn_sequence_only:
+    script: scripts/edna/train_taxdna_cnn_baseline.py
+    role: compact TAXDNA-style CNN baseline
+  ssm_sequence_only:
+    script: scripts/edna/train_12s_phylo_mamba.py
+    role: SSM DNA encoder replacement
+    preferred_loss: contrastive
+    temperature: 0.07
+    pooling: masked_mean
+  ecological_priors:
+    rls_rerank: scripts/edna/eval_global_edna_geographic_prior_rerank.py
+    obis_rerank: scripts/edna/eval_global_edna_occurrence_prior_rerank.py
+    rls_prior_only: scripts/edna/eval_global_edna_rls_prior_only.py
+    obis_prior_only: scripts/edna/eval_global_edna_occurrence_prior_only.py
+  cooccurrence_preprocessing:
+    script: scripts/edna/build_taxdna_cooccurrence_inputs.py
+    outputs:
+      - data/edna/cooccurrence_inputs/taxdna_ssm/rls_taxdna_cooccurrence.json
+      - data/edna/cooccurrence_inputs/taxdna_ssm/obis_taxdna_cooccurrence.json
+      - data/edna/cooccurrence_inputs/taxdna_ssm/rls_obis_taxdna_cooccurrence.json
+  swarm_preprocessing:
+    script: scripts/edna/export_global_edna_swarm_representatives.py
+    note: Global_eDNA provides SWARM MOTU tables locally, not raw FASTQ/FASTA; this exports representative FASTA for downstream prediction.
+  shared_tree_embeddings:
+    script: scripts/edna/learn_tree_embedding_npz.py
+    note: Use one NPZ tree embedding file per input so CNN and SSM differ only in DNA encoder.
+  learned_cooccurrence:
+    train_script: scripts/edna/train_npz_cooccurrence_model.py
+    eval_script: scripts/edna/eval_global_edna_learned_cooccurrence.py
+    cnn_predict_script: scripts/edna/predict_taxdna_cnn_checkpoint.py
+    ssm_predict_script: scripts/edna/predict_phylo_mamba_checkpoint.py
+    context_weight_sweep:
+      - 0.25
+      - 0.50
+      - 1.00
+      - 2.00
+    note: Recreates TAXDNA's low-rank leave-one-out community context in the fixed NPZ tree embedding space.
+  calibration:
+    script: scripts/edna/build_global_edna_calibration_matrix.py
+    note: Builds assignment-rate versus accuracy curves for every available Global_eDNA method.
+
+evaluation_matrix:
+  reference_zero_shot:
+    - exact Teleo CNN sequence-only
+    - exact Teleo SSM sequence-only
+    - broad 12S CNN sequence-only
+    - broad 12S SSM sequence-only
+  real_edna:
+    - Mamba sequence-only
+    - Mamba plus same-sample co-occurrence rerank
+    - Mamba plus RLS prior
+    - Mamba plus OBIS prior
+    - Mamba plus RLS and OBIS priors
+    - Mamba plus learned RLS/OBIS co-occurrence
+    - CNN plus learned RLS/OBIS co-occurrence
+    - RLS prior only
+    - OBIS prior only
+    - BLAST/VSEARCH-style train-reference baseline
+
+reporting:
+  ranks:
+    - species
+    - genus
+    - family
+    - order
+  metrics:
+    - top1
+    - top5
+    - top10
+    - sample-level Jaccard
+    - calibration/no-call curves
+  figure_source_tables:
+    - results/figures/source_data/figure_global_edna_prior_matrix.csv
+    - results/figures/source_data/figure_global_edna_calibration.csv
+  figure_drafts:
+    - results/figures/plots/global_edna_prior_matrix.pdf
+    - results/figures/plots/global_edna_sample_jaccard.pdf
+    - results/figures/plots/global_edna_calibration.pdf
+
+notes:
+  - Keep sequence-only results separate from ecological-prior results.
+  - Keep prior-only controls visible so ecological context cannot hide sequence failures.
+  - Do not train co-occurrence models on Global_eDNA validation labels when evaluating Global_eDNA.

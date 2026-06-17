@@ -1,0 +1,49 @@
+{
+  "created": "2026-05-26",
+  "name": "taxdna_ssm_track",
+  "goal": "Controlled TAXDNA-style sequence-to-phylogeny and ecological-context comparison with CNN baseline versus SSM encoder.",
+  "local_orchestration": {
+    "experiment_dir": "experiments/taxdna_ssm",
+    "prep_script": "experiments/taxdna_ssm/runs/01_local_prep.sh",
+    "global_edna_prior_script": "experiments/taxdna_ssm/runs/04_local_global_edna_priors.sh",
+    "vast_result_pull_script": "experiments/taxdna_ssm/runs/06_pull_vast_results.sh",
+    "local_refresh_script": "experiments/taxdna_ssm/runs/07_refresh_local_outputs.sh",
+    "figure_source_table_script": "scripts/figures/build_source_tables.py",
+    "figure_plot_script": "scripts/figures/plot_source_tables.py"
+  },
+  "inputs": {
+    "exact_teleo": "data/edna/stalder_inputs/multisource_teleo",
+    "broad_12s": "data/edna/stalder_inputs/multisource",
+    "real_edna": "data/edna/real_edna_queries/global_tropical_multisource_teleo",
+    "obis_prior_counts": "data/edna/raw/real_edna/global_obis_range_prior_site20_pad05/obis_site_prior_counts.csv",
+    "rls_species_csv": "/Users/kluless/Downloads/Global_eDNA/data/RLS/RLS_species_NEW.csv",
+    "cooccurrence_inputs": "data/edna/cooccurrence_inputs/taxdna_ssm"
+  },
+  "vast_commands": {
+    "exact_teleo": "experiments/taxdna_ssm/runs/02_vast_exact_teleo.sh",
+    "broad_12s": "experiments/taxdna_ssm/runs/03_vast_broad_12s.sh",
+    "learned_cooccurrence_after_exact_teleo": "experiments/taxdna_ssm/runs/05_vast_global_edna_learned_cooccurrence.sh"
+  },
+  "planned_arms": [
+    "exact_teleo_cnn_sequence_only",
+    "exact_teleo_ssm_sequence_only",
+    "broad_12s_cnn_sequence_only",
+    "broad_12s_ssm_sequence_only",
+    "global_edna_mamba_sequence_only",
+    "global_edna_mamba_plus_rls",
+    "global_edna_mamba_plus_obis",
+    "global_edna_mamba_plus_rls_obis",
+    "global_edna_mamba_plus_learned_cooccurrence",
+    "global_edna_cnn_plus_learned_cooccurrence",
+    "global_edna_rls_prior_only",
+    "global_edna_obis_prior_only",
+    "global_edna_blast_train_reference"
+  ],
+  "guardrails": [
+    "Do not merge sequence-only and ecological-prior claims.",
+    "Keep prior-only controls in every real eDNA summary.",
+    "Do not train co-occurrence models on Global_eDNA validation labels for Global_eDNA evaluation.",
+    "Report species/genus/family/order separately.",
+    "Keep figure source tables versioned separately from rendered plot drafts."
+  ]
+}

@@ -2,6 +2,13 @@
   "created_utc": "2026-05-26T10:35:00Z",
   "status": "inputs_prepared_not_launched",
   "purpose": "Strict clean-split COI Fish Tree DNA-to-tree rerun using predeclared Eval C and held-out-genera splits.",
+  "experiment_dir": "experiments/fish_tree_clean",
+  "run_wrappers": {
+    "local_checks": "experiments/fish_tree_clean/runs/01_local_checks.sh",
+    "vast_cosine_dim384": "experiments/fish_tree_clean/runs/02_vast_cosine_dim384.sh",
+    "pull_vast_results": "experiments/fish_tree_clean/runs/03_pull_vast_results.sh",
+    "refresh_local_outputs": "experiments/fish_tree_clean/runs/04_refresh_local_outputs.sh"
+  },
   "inputs": {
     "split_manifest": "data/phylo/fish_tree_clean_splits/manifest.json",
     "eval_c_input_dir": "data/phylo/fish_tree_clean_phylo_inputs/eval_c",

@@ -1,5 +1,10 @@
 # Literature Review: DNA Barcode Classification with SSMs and Foundation Models
 
+Note: for the current paper plan and eDNA/12S claim boundary, use
+`docs/LITERATURE_PARALLEL_WORK_VALUE_ADD.md`. This older note is kept as
+background on barcode/foundation-model papers and should not be treated as the
+current manuscript positioning by itself.
+
 ## Barcode-Specific Models
 
 ### BarcodeMamba (Peng et al., 2024)

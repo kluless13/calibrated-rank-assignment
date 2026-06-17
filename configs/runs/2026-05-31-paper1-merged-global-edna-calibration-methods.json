@@ -1,0 +1,74 @@
+[
+  {
+    "method": "ssm_sequence_only_2026_05_30",
+    "predictions": "results/remote_runs/2026-05-30/rtx_pro_6000/taxdna_ssm/global_edna_multisource_teleo_ssm_contrastive_predictions/zero_shot_candidate_predictions.csv"
+  },
+  {
+    "method": "cnn_sequence_only_2026_05_30",
+    "predictions": "results/remote_runs/2026-05-30/rtx_pro_6000/taxdna_ssm/global_edna_multisource_teleo_cnn_predictions/zero_shot_candidate_predictions.csv"
+  },
+  {
+    "method": "ssm_rls_obis_cooccurrence_w025_2026_05_30",
+    "predictions": "results/remote_runs/2026-05-30/rtx_pro_6000/taxdna_ssm/global_edna_multisource_teleo_ssm_learned_cooccurrence_w025/learned_cooccurrence_predictions.csv"
+  },
+  {
+    "method": "ssm_rls_obis_cooccurrence_w050_2026_05_30",
+    "predictions": "results/remote_runs/2026-05-30/rtx_pro_6000/taxdna_ssm/global_edna_multisource_teleo_ssm_learned_cooccurrence_w050/learned_cooccurrence_predictions.csv"
+  },
+  {
+    "method": "ssm_rls_obis_cooccurrence_w100_2026_05_30",
+    "predictions": "results/remote_runs/2026-05-30/rtx_pro_6000/taxdna_ssm/global_edna_multisource_teleo_ssm_learned_cooccurrence_w100/learned_cooccurrence_predictions.csv"
+  },
+  {
+    "method": "ssm_rls_obis_cooccurrence_w200_2026_05_30",
+    "predictions": "results/remote_runs/2026-05-30/rtx_pro_6000/taxdna_ssm/global_edna_multisource_teleo_ssm_learned_cooccurrence_w200/learned_cooccurrence_predictions.csv"
+  },
+  {
+    "method": "cnn_rls_obis_cooccurrence_w025_2026_05_30",
+    "predictions": "results/remote_runs/2026-05-30/rtx_pro_6000/taxdna_ssm/global_edna_multisource_teleo_cnn_learned_cooccurrence_w025/learned_cooccurrence_predictions.csv"
+  },
+  {
+    "method": "cnn_rls_obis_cooccurrence_w050_2026_05_30",
+    "predictions": "results/remote_runs/2026-05-30/rtx_pro_6000/taxdna_ssm/global_edna_multisource_teleo_cnn_learned_cooccurrence_w050/learned_cooccurrence_predictions.csv"
+  },
+  {
+    "method": "cnn_rls_obis_cooccurrence_w100_2026_05_30",
+    "predictions": "results/remote_runs/2026-05-30/rtx_pro_6000/taxdna_ssm/global_edna_multisource_teleo_cnn_learned_cooccurrence_w100/learned_cooccurrence_predictions.csv"
+  },
+  {
+    "method": "cnn_rls_obis_cooccurrence_w200_2026_05_30",
+    "predictions": "results/remote_runs/2026-05-30/rtx_pro_6000/taxdna_ssm/global_edna_multisource_teleo_cnn_learned_cooccurrence_w200/learned_cooccurrence_predictions.csv"
+  },
+  {
+    "method": "ssm_fishglob_cooccurrence_w025_2026_05_30",
+    "predictions": "results/remote_runs/2026-05-30/rtx_pro_6000/taxdna_ssm/global_edna_multisource_teleo_ssm_fishglob_learned_cooccurrence_w025/learned_cooccurrence_predictions.csv"
+  },
+  {
+    "method": "ssm_fishglob_cooccurrence_w050_2026_05_30",
+    "predictions": "results/remote_runs/2026-05-30/rtx_pro_6000/taxdna_ssm/global_edna_multisource_teleo_ssm_fishglob_learned_cooccurrence_w050/learned_cooccurrence_predictions.csv"
+  },
+  {
+    "method": "ssm_fishglob_cooccurrence_w100_2026_05_30",
+    "predictions": "results/remote_runs/2026-05-30/rtx_pro_6000/taxdna_ssm/global_edna_multisource_teleo_ssm_fishglob_learned_cooccurrence_w100/learned_cooccurrence_predictions.csv"
+  },
+  {
+    "method": "ssm_fishglob_cooccurrence_w200_2026_05_30",
+    "predictions": "results/remote_runs/2026-05-30/rtx_pro_6000/taxdna_ssm/global_edna_multisource_teleo_ssm_fishglob_learned_cooccurrence_w200/learned_cooccurrence_predictions.csv"
+  },
+  {
+    "method": "cnn_fishglob_cooccurrence_w025_2026_05_30",
+    "predictions": "results/remote_runs/2026-05-30/rtx_pro_6000/taxdna_ssm/global_edna_multisource_teleo_cnn_fishglob_learned_cooccurrence_w025/learned_cooccurrence_predictions.csv"
+  },
+  {
+    "method": "cnn_fishglob_cooccurrence_w050_2026_05_30",
+    "predictions": "results/remote_runs/2026-05-30/rtx_pro_6000/taxdna_ssm/global_edna_multisource_teleo_cnn_fishglob_learned_cooccurrence_w050/learned_cooccurrence_predictions.csv"
+  },
+  {
+    "method": "cnn_fishglob_cooccurrence_w100_2026_05_30",
+    "predictions": "results/remote_runs/2026-05-30/rtx_pro_6000/taxdna_ssm/global_edna_multisource_teleo_cnn_fishglob_learned_cooccurrence_w100/learned_cooccurrence_predictions.csv"
+  },
+  {
+    "method": "cnn_fishglob_cooccurrence_w200_2026_05_30",
+    "predictions": "results/remote_runs/2026-05-30/rtx_pro_6000/taxdna_ssm/global_edna_multisource_teleo_cnn_fishglob_learned_cooccurrence_w200/learned_cooccurrence_predictions.csv"
+  }
+]

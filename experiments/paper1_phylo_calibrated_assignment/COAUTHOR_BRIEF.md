@@ -10,10 +10,19 @@
 > **quantified genus-knowable / species-limited boundary**. Do not claim the
 > embedding, the baseline, or clustering as novel.
 
+> **SCOPE (Paper 1):** Paper 1 is the **COI calibrated rank-adaptive pipeline** —
+> the full draft is in [MANUSCRIPT.md](MANUSCRIPT.md). Everything central to the
+> coauthor review for this submission is that COI pipeline. The 12S cross-marker
+> bridging (MarkerMirror) and the learned Eco-Phylo posterior described later in
+> this brief are **Paper 2** material; in Paper 1 they appear only as the
+> marker-ceiling boundary (why species-level 12S/eDNA is intentionally not
+> claimed). Read MANUSCRIPT.md and [COAUTHOR_PLAIN_LANGUAGE.md](COAUTHOR_PLAIN_LANGUAGE.md)
+> first; the sections below are the fuller results dossier, Paper 1 then Paper 2.
+
 Working title:
 
-> Fast tree-aware molecular biodiversity inference with calibrated rank
-> assignment under missing and ambiguous evidence.
+> Calibrated rank-adaptive biodiversity inference from DNA barcodes under missing
+> references.
 
 ## One-Sentence Story
 

@@ -86,6 +86,7 @@ All paper docs live under
 **Start here**
 
 - [Plain-language overview](experiments/paper1_phylo_calibrated_assignment/COAUTHOR_PLAIN_LANGUAGE.md) — the whole project explained jargon-free (read this first)
+- [**Manuscript draft (Paper 1)**](experiments/paper1_phylo_calibrated_assignment/MANUSCRIPT.md) — the full paper draft (COI calibrated pipeline)
 - [Experiment-1 scope](experiments/paper1_phylo_calibrated_assignment/EXPERIMENT_1_PIPELINE_SCOPE.md) — authoritative scope, verified-vs-todo, decisions
 - [Coauthor brief](experiments/paper1_phylo_calibrated_assignment/COAUTHOR_BRIEF.md) — full results brief and open questions
 - [Novelty & prior art](experiments/paper1_phylo_calibrated_assignment/NOVELTY_AND_PRIOR_ART.md) — what's novel vs conceded, with citations

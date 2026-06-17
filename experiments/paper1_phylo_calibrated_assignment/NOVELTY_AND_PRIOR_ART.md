@@ -227,18 +227,23 @@ order) and do not claim to.
 
 ## 8. Honest status
 
-**Measured / verified in hand:** place (0.91/0.86 + 0.37 baseline + controls),
-detect (0.77/0.84 genus), rediscover (0.87 with count / 0.74 blind), the
-boundary, abstention, Fernando-style comparators.
+**Measured / verified in hand:** place (tree recovery 0.914; Eval C k-mer baseline
+0.375 same-split; shuffled-tree negative control 0.919→0.094), detect (0.77/0.84
+genus), rediscover (0.87 with count / 0.74 blind), prospective species-disjoint
+calibration (0% false-species survives all 30 repeats), the boundary, abstention,
+Fernando-style comparators.
 
-**Still to do (hours):** shuffled-*tree* control; Eval C k-mer baseline (currently
-unseen-genera); optional OpenMax open-set head. The REDISCOVER comparison vs
-VSEARCH/cd-hit/BarcodeBERT and the tree-vs-species frontier are **done**
-(`REDISCOVERY_BENCHMARK.md`); **optional** exact ABGD/ASAP runs only if reviewers
-demand the specific delimitation workflows.
+**Still to do (optional only):** OpenMax open-set head — optional, would
+strengthen DETECT but is not a blocker. Everything that was previously "to do"
+is now **done**: the shuffled-tree control (0.919→0.094) and the Eval C k-mer
+baseline (0.375 vs learned 0.914, on the Eval C split) close the place-result
+audit; the REDISCOVER comparison vs VSEARCH/cd-hit/BarcodeBERT and the
+tree-vs-species frontier are done (`REDISCOVERY_BENCHMARK.md`); **optional** exact
+ABGD/ASAP runs only if reviewers demand the specific delimitation workflows.
 
-**Standing:** CNN-not-Mamba naming; repo uncommitted (~148 entries; this work
-lives only in the working tree).
+**Standing:** CNN-not-Mamba naming resolved (repo renamed
+`calibrated-rank-assignment`, dropping the architecture name); work is committed
+and pushed.
 
 **Audit caveats:** the agent could not rule out an obscure 2025–2026 preprint
 doing the exact conjunction; a few differentiations are abstract-level, not

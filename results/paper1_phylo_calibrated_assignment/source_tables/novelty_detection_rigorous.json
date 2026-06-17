@@ -1,0 +1,38 @@
+{
+  "experiment": "novelty_detection_rigorous",
+  "reference_species": 3839,
+  "n_queries": {
+    "seen_test": 15763,
+    "eval_c": 11594,
+    "unseen_genera": 9148
+  },
+  "single_feature_auroc_reference_only": {
+    "known_vs_novel_all": 0.7516,
+    "known_vs_eval_c_species_novel": 0.68,
+    "known_vs_unseen_genera_genus_novel": 0.8424
+  },
+  "multi_feature_detector_species_split": {
+    "logistic": {
+      "mean": 0.7702,
+      "min": 0.7425,
+      "max": 0.8054
+    },
+    "hgb": {
+      "mean": 0.7658,
+      "min": 0.7357,
+      "max": 0.8053
+    }
+  },
+  "features": [
+    "ref_top1",
+    "ref_margin",
+    "ref_genus_consensus",
+    "ref_topk_mean",
+    "ref_n_ref_in_topk"
+  ],
+  "notes": [
+    "Reference-only = candidates filtered to the 3,839 species with sequences.",
+    "Multi-feature detector trained on calibration species, tested on disjoint eval species.",
+    "Known=trained=in-reference; this is the operational open-set definition."
+  ]
+}

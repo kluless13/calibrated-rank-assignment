@@ -1,0 +1,6 @@
+{
+  "experiment": "shuffled_tree_negative_control",
+  "real_tree_model_recovery": 0.9186,
+  "shuffled_tree_control_recovery": 0.0945,
+  "note": "Encoder trained on a permuted tree recovers TRUE tree distances near 0, proving the real 0.9 is genuine tree signal not a sequence-similarity artifact."
+}

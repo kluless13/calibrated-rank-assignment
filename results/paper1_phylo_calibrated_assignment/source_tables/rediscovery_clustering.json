@@ -1,0 +1,85 @@
+{
+  "experiment": "rediscovery_clustering_eval_c",
+  "n_reads": 11594,
+  "n_true_species": 531,
+  "n_true_genera": 427,
+  "n_true_families": 163,
+  "results": {
+    "kmeans_k_species": {
+      "species": {
+        "AMI": 0.874,
+        "ARI": 0.6054,
+        "homogeneity": 0.9405,
+        "completeness": 0.915,
+        "n_clusters": 531
+      },
+      "genus": {
+        "AMI": 0.8592,
+        "ARI": 0.5276,
+        "homogeneity": 0.9526,
+        "completeness": 0.8787,
+        "n_clusters": 531
+      },
+      "family": {
+        "AMI": 0.7559,
+        "ARI": 0.1912,
+        "homogeneity": 0.9818,
+        "completeness": 0.7021,
+        "n_clusters": 531
+      }
+    },
+    "agglomerative_thr0.1": {
+      "species": {
+        "AMI": 0.7418,
+        "ARI": 0.2987,
+        "homogeneity": 0.6649,
+        "completeness": 0.9843,
+        "n_clusters": 103
+      },
+      "genus": {
+        "AMI": 0.7795,
+        "ARI": 0.388,
+        "homogeneity": 0.7007,
+        "completeness": 0.9835,
+        "n_clusters": 103
+      }
+    },
+    "agglomerative_thr0.15": {
+      "species": {
+        "AMI": 0.659,
+        "ARI": 0.1405,
+        "homogeneity": 0.5551,
+        "completeness": 0.9863,
+        "n_clusters": 59
+      },
+      "genus": {
+        "AMI": 0.6941,
+        "ARI": 0.1879,
+        "homogeneity": 0.585,
+        "completeness": 0.9854,
+        "n_clusters": 59
+      }
+    },
+    "agglomerative_thr0.2": {
+      "species": {
+        "AMI": 0.5466,
+        "ARI": 0.0659,
+        "homogeneity": 0.4196,
+        "completeness": 0.9885,
+        "n_clusters": 28
+      },
+      "genus": {
+        "AMI": 0.5768,
+        "ARI": 0.0888,
+        "homogeneity": 0.4423,
+        "completeness": 0.9879,
+        "n_clusters": 28
+      }
+    }
+  },
+  "notes": [
+    "Eval C reads are from species the encoder never trained on.",
+    "Clustering uses ONLY the embeddings (no labels); truth used only to score.",
+    "AMI/ARI: 0=random, 1=perfect. homogeneity=cluster purity, completeness=species kept whole."
+  ]
+}

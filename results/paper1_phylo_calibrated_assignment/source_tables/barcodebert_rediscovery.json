@@ -1,0 +1,79 @@
+{
+  "model": "bioscan-ml/BarcodeBERT",
+  "embed_dim": 768,
+  "n_reads": 11594,
+  "n_species": 531,
+  "kmeans_k_species": {
+    "species": {
+      "AMI": 0.492,
+      "ARI": 0.2157,
+      "homogeneity": 0.7296,
+      "completeness": 0.6977,
+      "n_clusters": 531
+    },
+    "genus": {
+      "AMI": 0.4886,
+      "ARI": 0.188,
+      "homogeneity": 0.7293,
+      "completeness": 0.6612,
+      "n_clusters": 531
+    },
+    "family": {
+      "AMI": 0.4321,
+      "ARI": 0.0682,
+      "homogeneity": 0.7057,
+      "completeness": 0.496,
+      "n_clusters": 531
+    }
+  },
+  "blind": {
+    "thr0.05": {
+      "species": {
+        "AMI": 0.6218,
+        "ARI": 0.2909,
+        "homogeneity": 0.9714,
+        "completeness": 0.7508,
+        "n_clusters": 3431
+      },
+      "genus": {
+        "AMI": 0.6044,
+        "ARI": 0.2389,
+        "homogeneity": 0.9788,
+        "completeness": 0.7172,
+        "n_clusters": 3431
+      }
+    },
+    "thr0.1": {
+      "species": {
+        "AMI": 0.4838,
+        "ARI": 0.1491,
+        "homogeneity": 0.6963,
+        "completeness": 0.7032,
+        "n_clusters": 1212
+      },
+      "genus": {
+        "AMI": 0.4867,
+        "ARI": 0.1603,
+        "homogeneity": 0.7012,
+        "completeness": 0.6714,
+        "n_clusters": 1212
+      }
+    },
+    "thr0.15": {
+      "species": {
+        "AMI": 0.2905,
+        "ARI": 0.0244,
+        "homogeneity": 0.3863,
+        "completeness": 0.5847,
+        "n_clusters": 360
+      },
+      "genus": {
+        "AMI": 0.2945,
+        "ARI": 0.0305,
+        "homogeneity": 0.3845,
+        "completeness": 0.5519,
+        "n_clusters": 360
+      }
+    }
+  }
+}

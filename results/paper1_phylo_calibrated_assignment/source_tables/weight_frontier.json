@@ -1,0 +1,48 @@
+{
+  "frontier": [
+    {
+      "model": "ws0.0 (pure tree, wc1.0)",
+      "species_AMI_blind": 0.7874,
+      "species_AMI_kmeans": 0.8763,
+      "tree_recovery_pearson": 0.9074
+    },
+    {
+      "model": "ws0.1 (tree-heavy)",
+      "species_AMI_blind": 0.8588,
+      "species_AMI_kmeans": 0.8742,
+      "tree_recovery_pearson": 0.8419
+    },
+    {
+      "model": "ws0.3 (tree-leaning)",
+      "species_AMI_blind": 0.8971,
+      "species_AMI_kmeans": 0.8823,
+      "tree_recovery_pearson": 0.7433
+    },
+    {
+      "model": "ws1.0 (balanced)",
+      "species_AMI_blind": 0.9183,
+      "species_AMI_kmeans": 0.8991,
+      "tree_recovery_pearson": 0.6627
+    },
+    {
+      "model": "ANCHOR tree-only cosine512",
+      "species_AMI_blind": 0.7992,
+      "species_AMI_kmeans": 0.874,
+      "tree_recovery_pearson": 0.9186
+    },
+    {
+      "model": "ANCHOR hybrid (species-heavy)",
+      "species_AMI_blind": 0.9282,
+      "species_AMI_kmeans": 0.8934,
+      "tree_recovery_pearson": 0.5899
+    },
+    {
+      "model": "ANCHOR contrastive (species-only)",
+      "species_AMI_blind": 0.9227,
+      "species_AMI_kmeans": 0.8961,
+      "tree_recovery_pearson": 0.5741
+    }
+  ],
+  "vsearch_species_ami": 0.9147,
+  "vsearch_tree_recovery": null
+}

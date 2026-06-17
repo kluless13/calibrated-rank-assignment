@@ -1,0 +1,74 @@
+{
+  "tool": "cd-hit-est 4.8.1 (greedy alignment clustering, BIN-style)",
+  "by_identity": {
+    "id0.97": {
+      "species": {
+        "AMI": 0.8859,
+        "ARI": 0.7082,
+        "homogeneity": 0.9975,
+        "completeness": 0.8919,
+        "n_clusters": 1472
+      },
+      "genus": {
+        "AMI": 0.847,
+        "ARI": 0.5813,
+        "homogeneity": 0.9993,
+        "completeness": 0.8471,
+        "n_clusters": 1472
+      },
+      "family": {
+        "AMI": 0.6923,
+        "ARI": 0.1792,
+        "homogeneity": 0.9995,
+        "completeness": 0.6569,
+        "n_clusters": 1472
+      }
+    },
+    "id0.98": {
+      "species": {
+        "AMI": 0.8471,
+        "ARI": 0.6111,
+        "homogeneity": 0.9983,
+        "completeness": 0.8627,
+        "n_clusters": 1763
+      },
+      "genus": {
+        "AMI": 0.8074,
+        "ARI": 0.4916,
+        "homogeneity": 0.9993,
+        "completeness": 0.8187,
+        "n_clusters": 1763
+      },
+      "family": {
+        "AMI": 0.6564,
+        "ARI": 0.1452,
+        "homogeneity": 0.9995,
+        "completeness": 0.6349,
+        "n_clusters": 1763
+      }
+    },
+    "id0.99": {
+      "species": {
+        "AMI": 0.7732,
+        "ARI": 0.4788,
+        "homogeneity": 0.9992,
+        "completeness": 0.8168,
+        "n_clusters": 2481
+      },
+      "genus": {
+        "AMI": 0.7335,
+        "ARI": 0.3756,
+        "homogeneity": 0.9995,
+        "completeness": 0.7746,
+        "n_clusters": 2481
+      },
+      "family": {
+        "AMI": 0.5899,
+        "ARI": 0.1052,
+        "homogeneity": 0.9997,
+        "completeness": 0.6006,
+        "n_clusters": 2481
+      }
+    }
+  }
+}

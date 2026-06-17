@@ -1,0 +1,76 @@
+{
+  "tool": "VSEARCH 2.28.1 --cluster_fast (real alignment-based OTU clustering, BIN/ABGD-style)",
+  "n_reads": 11594,
+  "n_species": 531,
+  "by_identity": {
+    "id0.97": {
+      "species": {
+        "AMI": 0.9147,
+        "ARI": 0.7513,
+        "homogeneity": 0.9973,
+        "completeness": 0.9157,
+        "n_clusters": 1203
+      },
+      "genus": {
+        "AMI": 0.8758,
+        "ARI": 0.6213,
+        "homogeneity": 0.9992,
+        "completeness": 0.8699,
+        "n_clusters": 1203
+      },
+      "family": {
+        "AMI": 0.7195,
+        "ARI": 0.1953,
+        "homogeneity": 0.9995,
+        "completeness": 0.6746,
+        "n_clusters": 1203
+      }
+    },
+    "id0.98": {
+      "species": {
+        "AMI": 0.8964,
+        "ARI": 0.7079,
+        "homogeneity": 0.9986,
+        "completeness": 0.8995,
+        "n_clusters": 1364
+      },
+      "genus": {
+        "AMI": 0.8554,
+        "ARI": 0.5754,
+        "homogeneity": 0.9993,
+        "completeness": 0.8534,
+        "n_clusters": 1364
+      },
+      "family": {
+        "AMI": 0.7005,
+        "ARI": 0.1768,
+        "homogeneity": 0.9995,
+        "completeness": 0.6618,
+        "n_clusters": 1364
+      }
+    },
+    "id0.99": {
+      "species": {
+        "AMI": 0.837,
+        "ARI": 0.5496,
+        "homogeneity": 0.9991,
+        "completeness": 0.8553,
+        "n_clusters": 1838
+      },
+      "genus": {
+        "AMI": 0.7962,
+        "ARI": 0.4357,
+        "homogeneity": 0.9994,
+        "completeness": 0.8111,
+        "n_clusters": 1838
+      },
+      "family": {
+        "AMI": 0.6467,
+        "ARI": 0.1253,
+        "homogeneity": 0.9995,
+        "completeness": 0.629,
+        "n_clusters": 1838
+      }
+    }
+  }
+}

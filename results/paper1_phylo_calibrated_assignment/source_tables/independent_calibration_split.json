@@ -1,0 +1,34 @@
+{
+  "experiment": "independent_species_disjoint_calibration",
+  "model": "CNN seed1206 p-distance reranked",
+  "splits_pooled": [
+    "eval_c",
+    "unseen_genera"
+  ],
+  "target_precision": 0.99,
+  "feature": "per-rank top-10 consensus",
+  "n_repeats": 30,
+  "coverage": {
+    "mean": 0.9235,
+    "min": 0.9044,
+    "max": 0.9526
+  },
+  "assigned_precision": {
+    "mean": 0.9005,
+    "min": 0.879,
+    "max": 0.9471
+  },
+  "false_species_rate": {
+    "mean": 0.0,
+    "min": 0.0,
+    "max": 0.0
+  },
+  "mean_rank_counts": {
+    "n_species": 0,
+    "n_genus": 431,
+    "n_family": 6532,
+    "n_order": 2633,
+    "n_no_call": 794
+  },
+  "zero_false_species_survives": true
+}

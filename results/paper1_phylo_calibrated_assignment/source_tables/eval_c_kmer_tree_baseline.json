@@ -1,0 +1,11 @@
+{
+  "split": "eval_c",
+  "n_species": 531,
+  "n_pairs": 30000,
+  "raw_6mer_cosine_vs_tree": {
+    "pearson": 0.3752,
+    "spearman": 0.2821
+  },
+  "learned_for_comparison": 0.914,
+  "note": "Raw 6-mer cosine distance vs tree distance on Eval C (531 sp); compare to learned 0.914."
+}

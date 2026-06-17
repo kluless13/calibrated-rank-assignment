@@ -1,0 +1,161 @@
+{
+  "experiment": "rediscovery_head_to_head",
+  "n_reads": 11594,
+  "n_species": 531,
+  "note": "SUPERSEDED \u2014 see SUPERSEDED_2026-06-17 field and the real-tool JSONs.",
+  "learned_tree_geometry": {
+    "representation": "LEARNED tree-geometry embedding",
+    "dim": 512,
+    "kmeans_k_species": {
+      "species": {
+        "AMI": 0.874,
+        "ARI": 0.6054,
+        "homogeneity": 0.9405,
+        "completeness": 0.915,
+        "n_clusters": 531
+      },
+      "genus": {
+        "AMI": 0.8592,
+        "ARI": 0.5276,
+        "homogeneity": 0.9526,
+        "completeness": 0.8787,
+        "n_clusters": 531
+      },
+      "family": {
+        "AMI": 0.7559,
+        "ARI": 0.1912,
+        "homogeneity": 0.9818,
+        "completeness": 0.7021,
+        "n_clusters": 531
+      }
+    },
+    "blind": {
+      "thr0.05": {
+        "species": {
+          "AMI": 0.7992,
+          "ARI": 0.4108,
+          "homogeneity": 0.7518,
+          "completeness": 0.9811,
+          "n_clusters": 205
+        },
+        "genus": {
+          "AMI": 0.8379,
+          "ARI": 0.5209,
+          "homogeneity": 0.7914,
+          "completeness": 0.9791,
+          "n_clusters": 205
+        }
+      },
+      "thr0.1": {
+        "species": {
+          "AMI": 0.7418,
+          "ARI": 0.2987,
+          "homogeneity": 0.6649,
+          "completeness": 0.9843,
+          "n_clusters": 103
+        },
+        "genus": {
+          "AMI": 0.7795,
+          "ARI": 0.388,
+          "homogeneity": 0.7007,
+          "completeness": 0.9835,
+          "n_clusters": 103
+        }
+      },
+      "thr0.15": {
+        "species": {
+          "AMI": 0.659,
+          "ARI": 0.1405,
+          "homogeneity": 0.5551,
+          "completeness": 0.9863,
+          "n_clusters": 59
+        },
+        "genus": {
+          "AMI": 0.6941,
+          "ARI": 0.1879,
+          "homogeneity": 0.585,
+          "completeness": 0.9854,
+          "n_clusters": 59
+        }
+      }
+    }
+  },
+  "raw_kmer_BIN_ABGD_style": {
+    "representation": "RAW k-mer (BIN/ABGD-style)",
+    "dim": 6700,
+    "kmeans_k_species": {
+      "species": {
+        "AMI": 0.6182,
+        "ARI": 0.1433,
+        "homogeneity": 0.762,
+        "completeness": 0.7845,
+        "n_clusters": 531
+      },
+      "genus": {
+        "AMI": 0.6052,
+        "ARI": 0.1343,
+        "homogeneity": 0.7624,
+        "completeness": 0.7441,
+        "n_clusters": 531
+      },
+      "family": {
+        "AMI": 0.5304,
+        "ARI": 0.0633,
+        "homogeneity": 0.7537,
+        "completeness": 0.5704,
+        "n_clusters": 531
+      }
+    },
+    "blind": {
+      "thr0.05": {
+        "species": {
+          "AMI": 0.6383,
+          "ARI": 0.1312,
+          "homogeneity": 0.9131,
+          "completeness": 0.7718,
+          "n_clusters": 2623
+        },
+        "genus": {
+          "AMI": 0.6074,
+          "ARI": 0.1174,
+          "homogeneity": 0.9117,
+          "completeness": 0.7306,
+          "n_clusters": 2623
+        }
+      },
+      "thr0.1": {
+        "species": {
+          "AMI": 0.6586,
+          "ARI": 0.0809,
+          "homogeneity": 0.8494,
+          "completeness": 0.8035,
+          "n_clusters": 1718
+        },
+        "genus": {
+          "AMI": 0.6299,
+          "ARI": 0.0757,
+          "homogeneity": 0.8468,
+          "completeness": 0.7594,
+          "n_clusters": 1718
+        }
+      },
+      "thr0.15": {
+        "species": {
+          "AMI": 0.6688,
+          "ARI": 0.0764,
+          "homogeneity": 0.8209,
+          "completeness": 0.8216,
+          "n_clusters": 1386
+        },
+        "genus": {
+          "AMI": 0.6448,
+          "ARI": 0.0732,
+          "homogeneity": 0.8199,
+          "completeness": 0.778,
+          "n_clusters": 1386
+        }
+      }
+    }
+  },
+  "SUPERSEDED_2026-06-17": "The raw k-mer entry here is a FLAWED proxy (0.618) that badly understated classical delimitation. Real alignment tools were installed and run on Vast: VSEARCH species AMI 0.9147, cd-hit 0.886 (see vsearch_delimitation.json, cdhit_delimitation.json). In blind threshold mode the hybrid tree+species model TIES VSEARCH (0.9149) but loses tree-recovery (0.573 vs 0.914). See multitask_rediscovery.json and NOVELTY_AND_PRIOR_ART.md for the corrected conclusion. Do not cite the k-mer proxy row."
+}

@@ -1,0 +1,149 @@
+{
+  "experiment": "multitask_rediscovery",
+  "models": {
+    "cnn_hybrid (tree+species)": {
+      "matched_reads": 11594,
+      "n_species": 531,
+      "dim": 512,
+      "kmeans_k_species": {
+        "species": {
+          "AMI": 0.8934,
+          "ARI": 0.6602,
+          "homogeneity": 0.953,
+          "completeness": 0.9252,
+          "n_clusters": 531
+        },
+        "genus": {
+          "AMI": 0.8738,
+          "ARI": 0.565,
+          "homogeneity": 0.9632,
+          "completeness": 0.8866,
+          "n_clusters": 531
+        },
+        "family": {
+          "AMI": 0.755,
+          "ARI": 0.1944,
+          "homogeneity": 0.9827,
+          "completeness": 0.7013,
+          "n_clusters": 531
+        }
+      },
+      "blind": {
+        "thr0.05": {
+          "species": {
+            "AMI": 0.8659,
+            "ARI": 0.6674,
+            "homogeneity": 0.9985,
+            "completeness": 0.8761,
+            "n_clusters": 1751
+          }
+        },
+        "thr0.1": {
+          "species": {
+            "AMI": 0.9149,
+            "ARI": 0.7832,
+            "homogeneity": 0.9921,
+            "completeness": 0.9195,
+            "n_clusters": 1229
+          }
+        }
+      }
+    },
+    "cnn_contrastive (species only)": {
+      "matched_reads": 11594,
+      "n_species": 531,
+      "dim": 512,
+      "kmeans_k_species": {
+        "species": {
+          "AMI": 0.8961,
+          "ARI": 0.6714,
+          "homogeneity": 0.9546,
+          "completeness": 0.9267,
+          "n_clusters": 531
+        },
+        "genus": {
+          "AMI": 0.8739,
+          "ARI": 0.5717,
+          "homogeneity": 0.9633,
+          "completeness": 0.8866,
+          "n_clusters": 531
+        },
+        "family": {
+          "AMI": 0.7574,
+          "ARI": 0.1978,
+          "homogeneity": 0.9849,
+          "completeness": 0.7028,
+          "n_clusters": 531
+        }
+      },
+      "blind": {
+        "thr0.05": {
+          "species": {
+            "AMI": 0.8673,
+            "ARI": 0.6987,
+            "homogeneity": 0.9988,
+            "completeness": 0.8771,
+            "n_clusters": 1764
+          }
+        },
+        "thr0.1": {
+          "species": {
+            "AMI": 0.9089,
+            "ARI": 0.7618,
+            "homogeneity": 0.9923,
+            "completeness": 0.914,
+            "n_clusters": 1251
+          }
+        }
+      }
+    },
+    "cnn_hier_contrastive (tree+species+ranks)": {
+      "matched_reads": 11594,
+      "n_species": 531,
+      "dim": 512,
+      "kmeans_k_species": {
+        "species": {
+          "AMI": 0.8563,
+          "ARI": 0.5857,
+          "homogeneity": 0.9244,
+          "completeness": 0.9087,
+          "n_clusters": 530
+        },
+        "genus": {
+          "AMI": 0.8521,
+          "ARI": 0.544,
+          "homogeneity": 0.9422,
+          "completeness": 0.8781,
+          "n_clusters": 530
+        },
+        "family": {
+          "AMI": 0.7679,
+          "ARI": 0.2192,
+          "homogeneity": 0.9854,
+          "completeness": 0.712,
+          "n_clusters": 530
+        }
+      },
+      "blind": {
+        "thr0.05": {
+          "species": {
+            "AMI": 0.7668,
+            "ARI": 0.2513,
+            "homogeneity": 0.7504,
+            "completeness": 0.9448,
+            "n_clusters": 520
+          }
+        },
+        "thr0.1": {
+          "species": {
+            "AMI": 0.7462,
+            "ARI": 0.225,
+            "homogeneity": 0.7017,
+            "completeness": 0.9608,
+            "n_clusters": 335
+          }
+        }
+      }
+    }
+  }
+}

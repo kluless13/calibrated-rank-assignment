@@ -1,0 +1,3 @@
+item,status,needed_for,blocked_by_or_next_step,priority
+official_apples_or_documented_apples_equivalent,partial,A labelled local APPLES-like distance-placement diagnostic now exists; official APPLES is only needed for an official APPLES reproduction claim.,"official APPLES install/run, or a methods appendix documenting the local p-distance objective as APPLES-like only",2
+implement_fernando_style_pcp_or_tree_error,partial,"Placed-clade containment, LWR/rank-backoff, tree-distance, sister-clade, and simulated-placement-tree PCP diagnostics now exist; exact Fernando comparability still needs matched backbone-completeness sweeps.",need to run generated 99/80/60/40/20% random and family-stratified completeness sweeps on Linux/Vast,3

@@ -107,10 +107,10 @@ current manuscript positioning by itself.
 | Gap | Severity | Our Contribution |
 |-----|----------|-----------------|
 | No SSM/foundation model on **marine fish** barcodes | HIGH | First benchmark: 6 models on 318K BOLD sequences |
-| No **Evo 2** tested on barcode classification | HIGH | First Evo 2 evaluation on COI barcodes |
+| No **Evo 2** tested on barcode classification | HIGH | Open gap — we cite Evo 2's published numbers; we did **not** benchmark it ourselves |
 | No **hierarchical zero-shot** with neural models | HIGH | Family/order level evaluation on 173 held-out genera |
 | No **marine fish COI benchmark** (equivalent to BIOSCAN for insects) | HIGH | 318K sequences, 23K species, standardized splits |
-| No **general vs domain-specific** foundation model comparison on barcodes | MEDIUM-HIGH | Evo 2 (7B generalist) vs BarcodeMamba (8.2M specialist) |
+| No **general vs domain-specific** foundation model comparison on barcodes | MEDIUM-HIGH | Open gap (not run) — noted as future work |
 | Neural models not included in unknown taxa benchmarks | MEDIUM | Bridge between statistical (PROTAX/BayesANT) and neural approaches |
 
 ## Critical Context: Dataset Size Comparison

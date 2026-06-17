@@ -16,8 +16,9 @@ classification. A defensible biodiversity system should ask:
 > What is the deepest taxonomic rank supported by the available molecular,
 > tree, reference, marker-resolvability, and context evidence?
 
-MarineMamba is the broader evidence-aware barcode/eDNA pipeline. MarkerMirror
-is the 12S/16S marker-bridging branch inside that pipeline.
+The calibrated-rank-assignment pipeline (legacy codename *MarineMamba*) is the
+broader evidence-aware barcode/eDNA pipeline. MarkerMirror is the 12S/16S
+marker-bridging branch inside that pipeline.
 
 ## One-Paragraph Story
 
@@ -113,8 +114,8 @@ Possible title:
 
 Possible subtitle:
 
-> MarineMamba and MarkerMirror integrate learned retrieval, classical alignment,
-> tree evidence, and active reference curation.
+> A calibrated-rank-assignment pipeline integrating learned retrieval, classical
+> alignment, tree evidence, and active reference curation.
 
 ## Main Claim Set
 

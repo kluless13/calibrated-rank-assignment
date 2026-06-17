@@ -34,11 +34,17 @@ Safe claim:
 > calls for higher-rank assignments and lower false species-call rates on
 > held-out species/genera.
 
-Current candidate locked row:
+Current candidate locked row (CNN seed1206, p-distance reranked, target 0.99 —
+the headline operating point used throughout):
 
-- CNN seed1206 target 0.99.
-- Eval C: 90.0% assigned precision, 96.1% coverage.
-- Unseen-genera: 83.7% assigned precision, 93.7% coverage.
+- Eval C: 95.8% coverage, 93.0% assigned precision, **0.0% false species calls**.
+- Unseen-genera: 92.3% coverage, 83.9% assigned precision, **0.0% false species calls**.
+- Prospective (species-disjoint calibration, 30 repeats): 0.923 coverage, 0.900
+  precision, 0.0% false species — survives every repeat.
+
+(The non-reranked exact-vector variant gives 96.1%/90.0% coverage/precision on
+Eval C but does **not** reach 0% false species; the reranked row above is the
+locked candidate.)
 
 ### Vector-First Retrieval Is Feasible
 

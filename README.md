@@ -11,9 +11,10 @@ novelty, and returns the **deepest defensible rank (species / genus / family /
 order) or an explicit no-call** with a measured false-species-call rate — then
 converts abstentions into reference-curation priorities.
 
-> Developed under the working software name *MarineMamba*; the project is now
-> framed around the science (encoder-agnostic, marker- and taxon-general), not a
-> single architecture.
+> Developed under the legacy working name *MarineMamba*; the project and
+> repository are now **calibrated-rank-assignment**, framed around the science
+> (encoder-agnostic — the headline encoder is a CNN — and marker- and
+> taxon-general), not a single architecture.
 
 ## Thesis
 
@@ -84,6 +85,7 @@ All paper docs live under
 
 **Start here**
 
+- [Plain-language overview](experiments/paper1_phylo_calibrated_assignment/COAUTHOR_PLAIN_LANGUAGE.md) — the whole project explained jargon-free (read this first)
 - [Experiment-1 scope](experiments/paper1_phylo_calibrated_assignment/EXPERIMENT_1_PIPELINE_SCOPE.md) — authoritative scope, verified-vs-todo, decisions
 - [Coauthor brief](experiments/paper1_phylo_calibrated_assignment/COAUTHOR_BRIEF.md) — full results brief and open questions
 - [Novelty & prior art](experiments/paper1_phylo_calibrated_assignment/NOVELTY_AND_PRIOR_ART.md) — what's novel vs conceded, with citations
@@ -107,10 +109,8 @@ All paper docs live under
 **Positioning & prior art**
 
 - [Literature review](docs/LITERATURE_REVIEW.md)
-- [Literature gaps](experiments/paper1_phylo_calibrated_assignment/LITERATURE_GAPS.md)
 - [Fernando 2025 positioning](experiments/paper1_phylo_calibrated_assignment/FERNANDO_2025_POSITIONING.md)
 - [DEPP / H-DEPP notes](experiments/paper1_phylo_calibrated_assignment/DEPP_HDEPP_NOTES.md)
-- [Pipeline novelty deep dive](experiments/paper1_phylo_calibrated_assignment/PIPELINE_NOVELTY_DEEP_DIVE.md)
 
 **Production**
 

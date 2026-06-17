@@ -23,7 +23,10 @@ from pathlib import Path
 
 import pandas as pd
 
+from progress_logging import ProgressLogger, default_log_path
 
+
+ROOT = Path(__file__).resolve().parents[2]
 RANKS = ["species", "genus", "family", "order"]
 TOPK_DEFAULT = [1, 5, 10]
 
@@ -103,8 +106,17 @@ def rank_value(label: str | None, rank: str, taxonomy: dict[str, dict[str, objec
     return str(value) if nonempty(value) else None
 
 
-def first_hit_rank(true_label: str, predictions: list[str], rank: str, taxonomy: dict[str, dict[str, object]]) -> int | None:
-    true_value = rank_value(true_label, rank, taxonomy)
+def first_hit_rank(
+    true_label: str,
+    predictions: list[str],
+    rank: str,
+    taxonomy: dict[str, dict[str, object]],
+    true_rank_value: object | None = None,
+) -> int | None:
+    if rank == "species":
+        true_value = rank_value(true_label, rank, taxonomy)
+    else:
+        true_value = str(true_rank_value).strip() if nonempty(true_rank_value) else rank_value(true_label, rank, taxonomy)
     if not true_value:
         return None
     for idx, pred_label in enumerate(predictions, start=1):
@@ -150,17 +162,23 @@ def main() -> None:
         action="store_true",
         help="Write a blank prediction template and exit.",
     )
+    parser.add_argument("--log-file", type=Path)
     args = parser.parse_args()
 
+    logger = ProgressLogger(args.log_file or default_log_path(ROOT, Path(__file__).stem))
+    logger.start(Path(__file__).name)
     query_path = args.input_dir / "zero_shot_queries.csv"
     candidate_path = args.input_dir / "candidate_species.csv"
     if not query_path.exists() or not candidate_path.exists():
         raise SystemExit(f"Missing zero_shot_queries.csv or candidate_species.csv in {args.input_dir}")
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
+    logger.log(f"Loading queries from {query_path}")
     queries = pd.read_csv(query_path)
+    logger.log(f"Loading candidates from {candidate_path}")
     candidates = pd.read_csv(candidate_path)
     taxonomy = candidates.set_index("tree_label").to_dict(orient="index")
+    logger.log(f"Loaded {len(queries)} queries and {len(candidates)} candidates")
 
     if args.write_template:
         template = queries[[
@@ -190,17 +208,21 @@ def main() -> None:
         (args.output_dir / "zero_shot_prediction_template_manifest.json").write_text(
             json.dumps(manifest, indent=2, sort_keys=True) + "\n"
         )
+        logger.log(f"Wrote prediction template to {template_path}")
+        logger.done(Path(__file__).name)
         print(f"Wrote {template_path}.")
         return
 
     if args.predictions is None:
         raise SystemExit("--predictions is required unless --write-template is set")
 
+    logger.log(f"Loading predictions from {args.predictions}")
     predictions = pd.read_csv(args.predictions)
     if "processid" not in predictions.columns:
         raise SystemExit("Prediction CSV must contain processid")
 
     rank_columns = find_rank_columns(predictions.columns.tolist())
+    logger.log(f"Evaluating {len(predictions)} prediction rows with top-k {args.top_k}")
     pred_by_processid = {}
     for _, row in predictions.iterrows():
         pred_by_processid[str(row["processid"])] = predictions_for_row(row, rank_columns)
@@ -221,7 +243,8 @@ def main() -> None:
             "top_prediction": ranked[0] if ranked else None,
         }
         for rank in RANKS:
-            hit = first_hit_rank(true_label, ranked, rank, taxonomy) if true_label else None
+            query_rank_value = query.get(f"{rank}_name")
+            hit = first_hit_rank(true_label, ranked, rank, taxonomy, query_rank_value) if true_label else None
             row[f"{rank}_first_hit_rank"] = hit
             for k in args.top_k:
                 row[f"{rank}_top{k}"] = bool(hit is not None and hit <= k)
@@ -229,6 +252,7 @@ def main() -> None:
 
     per_query = pd.DataFrame(per_query_rows)
     per_query_path = args.output_dir / "zero_shot_candidate_per_query.csv"
+    logger.log(f"Writing per-query metrics to {per_query_path}")
     per_query.to_csv(per_query_path, index=False)
 
     metrics: dict[str, object] = {
@@ -255,6 +279,8 @@ def main() -> None:
 
     metrics_path = args.output_dir / "zero_shot_candidate_metrics.json"
     metrics_path.write_text(json.dumps(metrics, indent=2, sort_keys=True) + "\n")
+    logger.log(f"Writing aggregate metrics to {metrics_path}")
+    logger.done(Path(__file__).name)
     print(f"Wrote {metrics_path} and {per_query_path}.")
 
 

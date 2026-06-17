@@ -35,6 +35,51 @@ DEFAULT_METHODS = [
         "metrics": "results/edna/global_tropical_validation/multisource_teleo_hier_strong_seed1207_obis_site20_w005/global_edna_validation/global_edna_validation_metrics.json",
     },
     {
+        "method": "mamba_rls_obis_site20_w005",
+        "predictions": "results/edna/global_tropical_validation/multisource_teleo_hier_strong_seed1207_rls_obis_site20_w005/combined_prior_reranked_predictions.csv",
+        "metrics": "results/edna/global_tropical_validation/multisource_teleo_hier_strong_seed1207_rls_obis_site20_w005/global_edna_validation/global_edna_validation_metrics.json",
+    },
+    {
+        "method": "ssm_learned_cooccurrence_w025",
+        "predictions": "results/edna/taxdna_ssm/global_edna_multisource_teleo_ssm_learned_cooccurrence_w025/learned_cooccurrence_predictions.csv",
+        "metrics": "results/edna/taxdna_ssm/global_edna_multisource_teleo_ssm_learned_cooccurrence_w025/global_edna_validation/global_edna_validation_metrics.json",
+    },
+    {
+        "method": "ssm_learned_cooccurrence_w050",
+        "predictions": "results/edna/taxdna_ssm/global_edna_multisource_teleo_ssm_learned_cooccurrence_w050/learned_cooccurrence_predictions.csv",
+        "metrics": "results/edna/taxdna_ssm/global_edna_multisource_teleo_ssm_learned_cooccurrence_w050/global_edna_validation/global_edna_validation_metrics.json",
+    },
+    {
+        "method": "ssm_learned_cooccurrence_w100",
+        "predictions": "results/edna/taxdna_ssm/global_edna_multisource_teleo_ssm_learned_cooccurrence_w100/learned_cooccurrence_predictions.csv",
+        "metrics": "results/edna/taxdna_ssm/global_edna_multisource_teleo_ssm_learned_cooccurrence_w100/global_edna_validation/global_edna_validation_metrics.json",
+    },
+    {
+        "method": "ssm_learned_cooccurrence_w200",
+        "predictions": "results/edna/taxdna_ssm/global_edna_multisource_teleo_ssm_learned_cooccurrence_w200/learned_cooccurrence_predictions.csv",
+        "metrics": "results/edna/taxdna_ssm/global_edna_multisource_teleo_ssm_learned_cooccurrence_w200/global_edna_validation/global_edna_validation_metrics.json",
+    },
+    {
+        "method": "cnn_learned_cooccurrence_w025",
+        "predictions": "results/edna/taxdna_ssm/global_edna_multisource_teleo_cnn_learned_cooccurrence_w025/learned_cooccurrence_predictions.csv",
+        "metrics": "results/edna/taxdna_ssm/global_edna_multisource_teleo_cnn_learned_cooccurrence_w025/global_edna_validation/global_edna_validation_metrics.json",
+    },
+    {
+        "method": "cnn_learned_cooccurrence_w050",
+        "predictions": "results/edna/taxdna_ssm/global_edna_multisource_teleo_cnn_learned_cooccurrence_w050/learned_cooccurrence_predictions.csv",
+        "metrics": "results/edna/taxdna_ssm/global_edna_multisource_teleo_cnn_learned_cooccurrence_w050/global_edna_validation/global_edna_validation_metrics.json",
+    },
+    {
+        "method": "cnn_learned_cooccurrence_w100",
+        "predictions": "results/edna/taxdna_ssm/global_edna_multisource_teleo_cnn_learned_cooccurrence_w100/learned_cooccurrence_predictions.csv",
+        "metrics": "results/edna/taxdna_ssm/global_edna_multisource_teleo_cnn_learned_cooccurrence_w100/global_edna_validation/global_edna_validation_metrics.json",
+    },
+    {
+        "method": "cnn_learned_cooccurrence_w200",
+        "predictions": "results/edna/taxdna_ssm/global_edna_multisource_teleo_cnn_learned_cooccurrence_w200/learned_cooccurrence_predictions.csv",
+        "metrics": "results/edna/taxdna_ssm/global_edna_multisource_teleo_cnn_learned_cooccurrence_w200/global_edna_validation/global_edna_validation_metrics.json",
+    },
+    {
         "method": "rls_prior_only_site20",
         "predictions": "results/edna/global_tropical_validation/rls_prior_only_site20/rls_prior_only_predictions.csv",
         "metrics": "results/edna/global_tropical_validation/rls_prior_only_site20/global_edna_validation/global_edna_validation_metrics.json",

@@ -29,6 +29,7 @@ from phylo_zero_shot_common import (  # noqa: E402
     ordered_candidate_labels,
     ranked_predictions,
     read_tree,
+    save_query_embedding_npz,
     reference_dataframe,
     save_tree_embedding_npz,
     split_reference_dataframe,
@@ -149,6 +150,7 @@ def main() -> None:
     parser.add_argument("--num-workers", type=int, default=4)
     parser.add_argument("--seed", type=int, default=1206)
     parser.add_argument("--train-only-reference", action="store_true")
+    parser.add_argument("--write-query-embeddings", action="store_true")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
@@ -244,6 +246,21 @@ def main() -> None:
     )
     prediction_csv = args.output_dir / "zero_shot_candidate_predictions.csv"
     write_prediction_csv(prediction_csv, inputs.zero_shot_queries, ranked_labels, ranked_scores)
+    query_embedding_npz = None
+    if args.write_query_embeddings:
+        query_embedding_npz = args.output_dir / "query_embeddings.npz"
+        save_query_embedding_npz(
+            query_embedding_npz,
+            inputs.zero_shot_queries,
+            query_embeddings,
+            {
+                "input_dir": str(args.input_dir),
+                "checkpoint": str(checkpoint),
+                "tree_embedding_npz": str(args.tree_embedding_npz),
+                "model": "taxdna_style_cnn",
+                "max_seq_len": args.max_seq_len,
+            },
+        )
 
     metrics_dir = args.output_dir / "zero_shot_metrics"
     subprocess.run(
@@ -268,6 +285,7 @@ def main() -> None:
         "tree_embedding_npz": str(args.tree_embedding_npz),
         "checkpoint": str(checkpoint),
         "prediction_csv": str(prediction_csv),
+        "query_embedding_npz": str(query_embedding_npz) if query_embedding_npz else None,
         "metrics_dir": str(metrics_dir),
         "candidate_count": len(candidate_labels),
         "reference_sequences": len(ref_df),

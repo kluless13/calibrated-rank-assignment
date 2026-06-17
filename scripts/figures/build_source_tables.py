@@ -12,7 +12,9 @@ from typing import Iterable
 ROOT = Path(__file__).resolve().parents[2]
 LEDGER = ROOT / "results" / "summary" / "results_ledger.csv"
 OUT_DIR = ROOT / "results" / "figures" / "source_data"
+GLOBAL_EDNA_CALIBRATION = ROOT / "results" / "edna" / "global_tropical_validation" / "calibration"
 RANKS = ("genus", "family", "order")
+EDNA_RANKS = ("species", "genus", "family", "order")
 
 
 def read_ledger() -> list[dict[str, str]]:
@@ -20,10 +22,19 @@ def read_ledger() -> list[dict[str, str]]:
         return list(csv.DictReader(handle))
 
 
+def parse_float(value: object) -> float | None:
+    if value in (None, ""):
+        return None
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
 def write_csv(path: Path, rows: Iterable[dict[str, object]], fieldnames: list[str]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=fieldnames)
+        writer = csv.DictWriter(handle, fieldnames=fieldnames, extrasaction="ignore")
         writer.writeheader()
         writer.writerows(rows)
 
@@ -92,11 +103,12 @@ def dataset_coverage_rows() -> list[dict[str, object]]:
 def phylo_rows(rows: list[dict[str, str]]) -> list[dict[str, object]]:
     out: list[dict[str, object]] = []
     for row in rows:
-        if row["track"] != "COI phylo":
+        if row["track"] not in {"COI phylo", "COI fish-tree"}:
             continue
         if row.get("metric_name"):
             out.append(
                 {
+                    "track": row["track"],
                     "dataset": row["dataset"],
                     "method": row["method"],
                     "split": row["split"],
@@ -115,6 +127,7 @@ def phylo_rows(rows: list[dict[str, str]]) -> list[dict[str, object]]:
             if value:
                 out.append(
                     {
+                        "track": row["track"],
                         "dataset": row["dataset"],
                         "method": row["method"],
                         "split": row["split"],
@@ -127,6 +140,78 @@ def phylo_rows(rows: list[dict[str, str]]) -> list[dict[str, object]]:
                         "notes": row["notes"],
                     }
                 )
+    return out
+
+
+def global_edna_prior_rows(rows: list[dict[str, str]]) -> list[dict[str, object]]:
+    grouped: dict[tuple[str, str], dict[str, object]] = {}
+    for row in rows:
+        if row["track"] != "real eDNA" or row["dataset"] != "global_tropical_multisource_teleo":
+            continue
+        method = row["method"]
+        if row["split"].startswith("global_edna_asv_top"):
+            top_k = row["split"].replace("global_edna_asv_", "")
+            for rank in EDNA_RANKS:
+                value = parse_float(row.get(f"{rank}_accuracy_pct"))
+                if value is None:
+                    continue
+                out = grouped.setdefault(
+                    (method, rank),
+                    {"method": method, "rank": rank, "source_file": row.get("source_file", "")},
+                )
+                out[f"asv_{top_k}_accuracy_pct"] = value
+                out["metrics_json"] = row.get("source_file", "")
+        elif row["split"] == "global_edna_sample" and row.get("metric_name"):
+            metric_name = row["metric_name"]
+            value = parse_float(row.get("metric_value"))
+            if value is None:
+                continue
+            for rank in EDNA_RANKS:
+                prefix = f"{rank}_"
+                if not metric_name.startswith(prefix):
+                    continue
+                out = grouped.setdefault(
+                    (method, rank),
+                    {"method": method, "rank": rank, "source_file": row.get("source_file", "")},
+                )
+                out[f"sample_{metric_name[len(prefix):]}_pct"] = 100.0 * value
+                out.setdefault("metrics_json", row.get("source_file", ""))
+
+    for row in grouped.values():
+        row.setdefault("asv_top1_accuracy_pct", "")
+        row.setdefault("asv_top5_accuracy_pct", "")
+        row.setdefault("asv_top10_accuracy_pct", "")
+        row.setdefault("sample_top1_jaccard_pct", "")
+        row.setdefault("sample_top1_recall_pct", "")
+        row.setdefault("metrics_json", row.get("source_file", ""))
+    return list(grouped.values())
+
+
+def global_edna_calibration_rows() -> list[dict[str, object]]:
+    if not GLOBAL_EDNA_CALIBRATION.exists():
+        return []
+    out: list[dict[str, object]] = []
+    for path in sorted(GLOBAL_EDNA_CALIBRATION.glob("*/calibration_curve.csv")):
+        method = path.parent.name
+        with path.open() as handle:
+            for row in csv.DictReader(handle):
+                for rank in EDNA_RANKS:
+                    accuracy = row.get(f"{rank}_accuracy")
+                    if accuracy in (None, ""):
+                        continue
+                    out.append(
+                        {
+                            "method": method,
+                            "threshold": row.get("threshold", ""),
+                            "n_query": row.get("n_query", ""),
+                            "n_assigned": row.get("n_assigned", ""),
+                            "assignment_rate_pct": 100.0 * float(row.get("assignment_rate") or 0.0),
+                            "rank": rank,
+                            "n_rank": row.get(f"{rank}_n", ""),
+                            "accuracy_pct": 100.0 * float(accuracy),
+                            "source_file": str(path.relative_to(ROOT)),
+                        }
+                    )
     return out
 
 
@@ -202,6 +287,7 @@ def main() -> None:
         OUT_DIR / "figure_phylo_support.csv",
         phylo_rows(rows),
         [
+            "track",
             "dataset",
             "method",
             "split",
@@ -212,6 +298,38 @@ def main() -> None:
             "provenance",
             "source_file",
             "notes",
+        ],
+    )
+
+    write_csv(
+        OUT_DIR / "figure_global_edna_prior_matrix.csv",
+        global_edna_prior_rows(rows),
+        [
+            "method",
+            "rank",
+            "asv_top1_accuracy_pct",
+            "asv_top5_accuracy_pct",
+            "asv_top10_accuracy_pct",
+            "sample_top1_jaccard_pct",
+            "sample_top1_recall_pct",
+            "metrics_json",
+            "source_file",
+        ],
+    )
+
+    write_csv(
+        OUT_DIR / "figure_global_edna_calibration.csv",
+        global_edna_calibration_rows(),
+        [
+            "method",
+            "threshold",
+            "n_query",
+            "n_assigned",
+            "assignment_rate_pct",
+            "rank",
+            "n_rank",
+            "accuracy_pct",
+            "source_file",
         ],
     )
 

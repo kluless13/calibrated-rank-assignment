@@ -115,9 +115,13 @@ def split_reference_dataframe(
     input_dir: Path,
     val_fraction: float,
     seed: int,
+    validation_mode: str = "auto",
 ) -> tuple[pd.DataFrame, pd.DataFrame, dict[str, object]]:
+    if validation_mode not in {"auto", "species_file", "random_species", "random_sequence"}:
+        raise ValueError(f"Unknown validation mode: {validation_mode}")
+
     val_path = input_dir / "val_species.json"
-    if val_path.exists():
+    if validation_mode in {"auto", "species_file"} and val_path.exists():
         val_species = set(str(label) for label in json.loads(val_path.read_text()))
         val_mask = ref_df["tree_label"].isin(val_species)
         if val_mask.any() and (~val_mask).any():
@@ -131,8 +135,29 @@ def split_reference_dataframe(
                 "train_species": int(train_df["tree_label"].nunique()),
                 "val_species": int(val_df["tree_label"].nunique()),
             }
+        if validation_mode == "species_file":
+            raise RuntimeError(f"Cannot build non-empty train/val split from {val_path}")
 
     rng = np.random.default_rng(seed)
+    if validation_mode == "random_sequence":
+        indices = np.arange(len(ref_df))
+        rng.shuffle(indices)
+        n_val = max(1, int(len(indices) * val_fraction))
+        n_val = min(n_val, len(indices) - 1)
+        val_indices = set(indices[:n_val].tolist())
+        val_mask = ref_df.index.isin(val_indices)
+        train_df = ref_df[~val_mask].copy()
+        val_df = ref_df[val_mask].copy()
+        return train_df, val_df, {
+            "mode": "random_sequence_split",
+            "val_fraction": val_fraction,
+            "seed": seed,
+            "train_sequences": int(len(train_df)),
+            "val_sequences": int(len(val_df)),
+            "train_species": int(train_df["tree_label"].nunique()),
+            "val_species": int(val_df["tree_label"].nunique()),
+        }
+
     species = np.array(sorted(ref_df["tree_label"].unique()))
     n_val = max(1, int(len(species) * val_fraction))
     val_species = set(rng.choice(species, size=min(n_val, len(species) - 1), replace=False))
@@ -277,6 +302,29 @@ def load_tree_embedding_npz(path: Path) -> tuple[list[str], np.ndarray, dict[str
     embeddings = payload["embeddings"].astype(np.float32)
     metadata = json.loads(str(payload["metadata"])) if "metadata" in payload else {}
     return labels, embeddings, metadata
+
+
+def save_query_embedding_npz(
+    path: Path,
+    queries: pd.DataFrame,
+    embeddings: np.ndarray,
+    metadata: dict[str, object],
+) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    np.savez_compressed(
+        path,
+        processids=queries["processid"].astype(str).to_numpy(dtype=object),
+        embeddings=embeddings.astype(np.float32),
+        metadata=json.dumps(metadata, sort_keys=True, default=str),
+    )
+
+
+def load_query_embedding_npz(path: Path) -> tuple[list[str], np.ndarray, dict[str, object]]:
+    payload = np.load(path, allow_pickle=True)
+    processids = [str(processid) for processid in payload["processids"].tolist()]
+    embeddings = payload["embeddings"].astype(np.float32)
+    metadata = json.loads(str(payload["metadata"])) if "metadata" in payload else {}
+    return processids, embeddings, metadata
 
 
 def extract_embeddings(model: torch.nn.Module, queries: pd.DataFrame, max_seq_len: int, batch_size: int, device: str, num_workers: int) -> np.ndarray:

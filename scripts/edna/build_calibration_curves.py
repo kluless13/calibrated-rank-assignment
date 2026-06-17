@@ -10,7 +10,10 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from progress_logging import ProgressLogger, default_log_path
 
+
+ROOT = Path(__file__).resolve().parents[2]
 RANKS = ["species", "genus", "family", "order"]
 
 
@@ -139,20 +142,28 @@ def main() -> None:
     parser.add_argument("--prefix", default="blast", help="Prediction prefix for rank_prediction mode: blast, knn, direct.")
     parser.add_argument("--score-column", help="Optional explicit score column. Distance columns are negated.")
     parser.add_argument("--quantiles", nargs="+", type=float, default=[0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9])
+    parser.add_argument("--log-file", type=Path)
     args = parser.parse_args()
 
+    logger = ProgressLogger(args.log_file or default_log_path(ROOT, Path(__file__).stem))
+    logger.start(Path(__file__).name)
     args.output_dir.mkdir(parents=True, exist_ok=True)
+    logger.log(f"Loading predictions from {args.predictions} in {args.mode} mode")
     if args.mode == "zero_shot_candidate":
         if args.input_dir is None:
             raise SystemExit("--input-dir is required for zero_shot_candidate mode")
         scored = load_zero_shot_candidate(args.predictions, args.input_dir)
     else:
         scored = load_rank_prediction(args.predictions, args.prefix, args.score_column)
+    logger.log(f"Loaded {len(scored)} scored rows")
 
     scored_path = args.output_dir / "calibration_scored_rows.csv"
+    logger.log(f"Writing scored rows to {scored_path}")
     scored.to_csv(scored_path, index=False)
+    logger.log("Building calibration curve")
     curve = build_curve(scored, args.quantiles)
     curve_path = args.output_dir / "calibration_curve.csv"
+    logger.log(f"Writing calibration curve to {curve_path}")
     curve.to_csv(curve_path, index=False)
 
     manifest = {
@@ -169,6 +180,8 @@ def main() -> None:
     }
     manifest_path = args.output_dir / "calibration_manifest.json"
     manifest_path.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
+    logger.log(f"Writing manifest to {manifest_path}")
+    logger.done(Path(__file__).name)
     print(f"Wrote {curve_path} and {scored_path}.")
 
 

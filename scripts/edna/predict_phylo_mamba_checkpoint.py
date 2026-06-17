@@ -18,6 +18,7 @@ if str(SCRIPT_DIR) not in sys.path:
 from phylo_zero_shot_common import (  # noqa: E402
     extract_embeddings,
     load_tree_embedding_npz,
+    save_query_embedding_npz,
     load_zero_shot_inputs,
     ordered_candidate_labels,
     ranked_predictions,
@@ -41,6 +42,7 @@ def main() -> None:
     parser.add_argument("--top-k", type=int, default=50)
     parser.add_argument("--num-workers", type=int, default=4)
     parser.add_argument("--seed", type=int, default=1206)
+    parser.add_argument("--write-query-embeddings", action="store_true")
     parser.add_argument("--skip-eval", action="store_true")
     args = parser.parse_args()
 
@@ -76,6 +78,22 @@ def main() -> None:
     )
     prediction_csv = args.output_dir / "zero_shot_candidate_predictions.csv"
     write_prediction_csv(prediction_csv, inputs.zero_shot_queries, ranked_labels, ranked_scores)
+    query_embedding_npz = None
+    if args.write_query_embeddings:
+        query_embedding_npz = args.output_dir / "query_embeddings.npz"
+        save_query_embedding_npz(
+            query_embedding_npz,
+            inputs.zero_shot_queries,
+            query_embeddings,
+            {
+                "input_dir": str(args.input_dir),
+                "checkpoint": str(args.checkpoint),
+                "tree_embedding_npz": str(args.tree_embedding_npz),
+                "tree_embedding_metadata": tree_metadata,
+                "model": "phylo_mamba",
+                "max_seq_len": args.max_seq_len,
+            },
+        )
 
     metrics_dir = None
     if not args.skip_eval and "tree_label" in inputs.zero_shot_queries.columns:
@@ -103,6 +121,7 @@ def main() -> None:
         "tree_embedding_metadata": tree_metadata,
         "output_dir": str(args.output_dir),
         "prediction_csv": str(prediction_csv),
+        "query_embedding_npz": str(query_embedding_npz) if query_embedding_npz else None,
         "metrics_dir": str(metrics_dir) if metrics_dir else None,
         "candidate_count": len(candidate_labels),
         "query_count": int(len(inputs.zero_shot_queries)),

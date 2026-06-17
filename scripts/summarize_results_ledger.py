@@ -23,6 +23,32 @@ def load(path: str) -> dict[str, Any] | None:
     return json.loads(p.read_text())
 
 
+def load_csv(path: str) -> list[dict[str, str]]:
+    p = ROOT / path
+    if not p.exists():
+        return []
+    with p.open(newline="") as handle:
+        return list(csv.DictReader(handle))
+
+
+def parse_float(value: Any) -> float | None:
+    if value is None or value == "":
+        return None
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def parse_int(value: Any) -> int | None:
+    if value is None or value == "":
+        return None
+    try:
+        return int(float(value))
+    except (TypeError, ValueError):
+        return None
+
+
 def accuracy(block: dict[str, Any] | None, rank: str) -> float | None:
     if not isinstance(block, dict):
         return None
@@ -305,6 +331,133 @@ def add_hybrid(rows: list[dict[str, Any]], path: str, *, track: str, marker: str
                 )
 
 
+def add_candidate_metrics(
+    rows: list[dict[str, Any]],
+    path: str,
+    *,
+    track: str,
+    marker: str,
+    dataset: str,
+    method: str,
+    split_prefix: str,
+    provenance: str,
+    notes: str = "",
+) -> None:
+    data = load(path)
+    if not data:
+        return
+    metrics_by_rank = data.get("metrics", {})
+    for top_k in ("top1", "top5", "top10"):
+        metrics = {
+            rank: {
+                "accuracy": rank_metrics.get(top_k),
+                "n_total": rank_metrics.get("eligible_queries"),
+            }
+            for rank, rank_metrics in metrics_by_rank.items()
+            if isinstance(rank_metrics, dict)
+        }
+        if not metrics:
+            continue
+        add_rank_row(
+            rows,
+            track=track,
+            marker=marker,
+            dataset=dataset,
+            method=method,
+            split=f"{split_prefix}_{top_k}",
+            source_file=path,
+            metrics=metrics,
+            provenance=provenance,
+            n_query=data.get("query_count") or data.get("queries_with_predictions"),
+            notes=notes,
+        )
+
+
+def add_tree_recovery(rows: list[dict[str, Any]], path: str, *, dataset: str, method: str, split: str, provenance: str, notes: str = "") -> None:
+    data = load(path)
+    if not data:
+        return
+    for block_name, block in data.get("metrics", {}).items():
+        if not isinstance(block, dict):
+            continue
+        for metric in ("pearson_r", "spearman_r"):
+            if metric not in block:
+                continue
+            add_scalar_row(
+                rows,
+                track="COI fish-tree",
+                marker="COI",
+                dataset=dataset,
+                method=method,
+                split=f"{split}_{block_name}",
+                source_file=path,
+                provenance=provenance,
+                metric_name=metric,
+                metric_value=block[metric],
+                notes=f"n_pairs={block.get('n_pairs')}. {notes}".strip(),
+            )
+
+
+def add_global_edna_json(
+    rows: list[dict[str, Any]],
+    path: str,
+    *,
+    dataset: str,
+    method: str,
+    provenance: str,
+    notes: str = "",
+) -> None:
+    data = load(path)
+    if not data:
+        return
+    asv_metrics = data.get("asv_metrics", {})
+    for top_k in ("top1", "top5", "top10"):
+        metrics = {
+            rank: {
+                "accuracy": rank_metrics.get(top_k),
+                "n_total": rank_metrics.get("assigned_rows"),
+            }
+            for rank, rank_metrics in asv_metrics.items()
+            if isinstance(rank_metrics, dict)
+        }
+        if metrics:
+            add_rank_row(
+                rows,
+                track="real eDNA",
+                marker="12S",
+                dataset=dataset,
+                method=method,
+                split=f"global_edna_asv_{top_k}",
+                source_file=path,
+                metrics=metrics,
+                provenance=provenance,
+                n_query=data.get("sample_query_rows") or data.get("prediction_rows"),
+                notes=notes,
+            )
+
+    sample_summary = data.get("sample_metric_summary", {})
+    for rank in RANKS:
+        for top_k in ("top1", "top5", "top10"):
+            for metric_suffix in ("jaccard", "precision", "recall"):
+                metric_name = f"{rank}_{top_k}_{metric_suffix}"
+                metric = sample_summary.get(metric_name)
+                if not isinstance(metric, dict) or metric.get("mean") is None:
+                    continue
+                add_scalar_row(
+                    rows,
+                    track="real eDNA",
+                    marker="12S",
+                    dataset=dataset,
+                    method=method,
+                    split="global_edna_sample",
+                    source_file=path,
+                    provenance=provenance,
+                    metric_name=metric_name,
+                    metric_value=metric.get("mean"),
+                    notes=f"Mean over {sample_summary.get('samples', data.get('sample_count'))} samples. {notes}".strip(),
+                )
+
+
 def add_phylo(rows: list[dict[str, Any]]) -> None:
     path = "results/phylo_fish_only_results.json"
     data = load(path)
@@ -376,6 +529,195 @@ def add_phylo(rows: list[dict[str, Any]]) -> None:
                     )
 
 
+def add_global_edna(rows: list[dict[str, Any]]) -> None:
+    overall_path = "results/edna/global_tropical_validation/summary/global_edna_method_overall_metrics.csv"
+    stratified_path = "results/edna/global_tropical_validation/summary/global_edna_method_stratified_metrics.csv"
+    provenance = "local Global_eDNA validation summary"
+    dataset = "global_tropical_multisource_teleo"
+
+    for row in load_csv(overall_path):
+        method = row["method"]
+        for top_k in ("top1", "top5", "top10"):
+            metrics = {
+                rank: {"accuracy": parse_float(row.get(f"asv_{rank}_{top_k}"))}
+                for rank in RANKS
+            }
+            add_rank_row(
+                rows,
+                track="real eDNA",
+                marker="12S",
+                dataset=dataset,
+                method=method,
+                split=f"global_edna_asv_{top_k}",
+                source_file=overall_path,
+                metrics=metrics,
+                provenance=provenance,
+                notes=f"metrics_json={row.get('metrics_json', '')}",
+            )
+        for rank in RANKS:
+            for metric_suffix in ("jaccard", "recall"):
+                metric_name = f"sample_{rank}_top1_{metric_suffix}"
+                value = parse_float(row.get(metric_name))
+                if value is None:
+                    continue
+                add_scalar_row(
+                    rows,
+                    track="real eDNA",
+                    marker="12S",
+                    dataset=dataset,
+                    method=method,
+                    split="global_edna_sample_top1",
+                    source_file=overall_path,
+                    provenance=provenance,
+                    metric_name=metric_name,
+                    metric_value=value,
+                    notes="Sample-level Global_eDNA validation summary.",
+                )
+
+    for row in load_csv(stratified_path):
+        status = row.get("reference_status", "")
+        if status not in {"reference_species", "zero_shot_species"}:
+            continue
+        method = row["method"]
+        for top_k in ("top1", "top5", "top10"):
+            metrics = {
+                rank: {"accuracy": parse_float(row.get(f"{rank}_{top_k}"))}
+                for rank in RANKS
+            }
+            add_rank_row(
+                rows,
+                track="real eDNA",
+                marker="12S",
+                dataset=dataset,
+                method=method,
+                split=f"global_edna_{status}_{top_k}",
+                source_file=stratified_path,
+                metrics=metrics,
+                provenance=provenance,
+                n_query=parse_int(row.get("rows")),
+                notes="Reference-status stratified Global_eDNA ASV validation.",
+            )
+
+
+def add_may30_taxdna_ssm(rows: list[dict[str, Any]]) -> None:
+    provenance = "copied from Vast remote_runs/2026-05-30/rtx_pro_6000"
+    base = "results/remote_runs/2026-05-30/rtx_pro_6000/taxdna_ssm"
+
+    for directory, dataset, method, notes in [
+        ("multisource_teleo_ssm_contrastive", "multisource_teleo", "SSM contrastive", "Exact Teleo-style candidate set."),
+        ("multisource_teleo_ssm_contrastive_seed1207", "multisource_teleo", "SSM contrastive seed1207", "Exact Teleo-style candidate set."),
+        ("multisource_teleo_ssm_contrastive_seed1208", "multisource_teleo", "SSM contrastive seed1208", "Exact Teleo-style candidate set."),
+        ("multisource_teleo_cnn", "multisource_teleo", "CNN baseline", "Exact Teleo-style candidate set."),
+        ("multisource_teleo_cnn_seed1207", "multisource_teleo", "CNN baseline seed1207", "Exact Teleo-style candidate set."),
+        ("multisource_teleo_cnn_seed1208", "multisource_teleo", "CNN baseline seed1208", "Exact Teleo-style candidate set."),
+        ("multisource_ssm_contrastive", "multisource_12s", "SSM contrastive", "Broad multisource 12S candidate set."),
+        ("multisource_cnn", "multisource_12s", "CNN baseline", "Broad multisource 12S candidate set."),
+    ]:
+        add_candidate_metrics(
+            rows,
+            f"{base}/{directory}/zero_shot_metrics/zero_shot_candidate_metrics.json",
+            track="12S TAXDNA-style",
+            marker="12S",
+            dataset=dataset,
+            method=method,
+            split_prefix="open_candidate_zero_shot",
+            provenance=provenance,
+            notes=notes,
+        )
+
+    for directory, method, notes in [
+        ("global_edna_multisource_teleo_ssm_sequence_only_validation", "SSM sequence-only", "Global_eDNA ASV validation."),
+        ("global_edna_multisource_teleo_cnn_sequence_only_validation", "CNN sequence-only", "Global_eDNA ASV validation."),
+    ]:
+        add_global_edna_json(
+            rows,
+            f"{base}/{directory}/global_edna_validation_metrics.json",
+            dataset="global_tropical_multisource_teleo",
+            method=method,
+            provenance=provenance,
+            notes=notes,
+        )
+
+    for context_name, context_label in [("learned_cooccurrence", "RLS/OBIS learned co-occurrence"), ("fishglob_learned_cooccurrence", "FISHGLOB learned co-occurrence")]:
+        for encoder in ("ssm", "cnn"):
+            for weight in ("025", "050", "100", "200"):
+                directory = f"global_edna_multisource_teleo_{encoder}_{context_name}_w{weight}"
+                method = f"{encoder.upper()} {context_label} w{weight}"
+                add_global_edna_json(
+                    rows,
+                    f"{base}/{directory}/global_edna_validation/global_edna_validation_metrics.json",
+                    dataset="global_tropical_multisource_teleo",
+                    method=method,
+                    provenance=provenance,
+                    notes="Sequence score reranked by learned ecological context.",
+                )
+
+
+def add_may30_fish_tree(rows: list[dict[str, Any]]) -> None:
+    provenance = "copied from Vast remote_runs/2026-05-30/rtx_pro_6000"
+    base = "results/remote_runs/2026-05-30/rtx_pro_6000"
+    runs = [
+        ("coi_fish_tree_clean_phylo_mamba_cosine_dim384", "cosine dim384 seed1206"),
+        ("coi_fish_tree_clean_phylo_mamba_hier512_seqval", "hierarchical hybrid dim512 seed1206"),
+        ("coi_fish_tree_clean_phylo_mamba_cosine512_seqval", "cosine dim512 seed1206"),
+        ("coi_fish_tree_clean_phylo_mamba_cosine512_seqval_seed1207", "cosine dim512 seed1207"),
+        ("coi_fish_tree_clean_phylo_mamba_cosine512_seqval_seed1208", "cosine dim512 seed1208"),
+    ]
+    for run_dir, method in runs:
+        notes = "Clean COI fish-tree protocol; Eval C and unseen-genera species held out."
+        add_candidate_metrics(
+            rows,
+            f"{base}/{run_dir}/zero_shot_metrics/zero_shot_candidate_metrics.json",
+            track="COI fish-tree",
+            marker="COI",
+            dataset="fish_tree_clean_eval_c",
+            method=method,
+            split_prefix="eval_c_candidate_retrieval",
+            provenance=provenance,
+            notes=notes,
+        )
+        add_candidate_metrics(
+            rows,
+            f"{base}/{run_dir}_seen_test/zero_shot_metrics/zero_shot_candidate_metrics.json",
+            track="COI fish-tree",
+            marker="COI",
+            dataset="fish_tree_clean_seen_test",
+            method=method,
+            split_prefix="seen_species_candidate_retrieval",
+            provenance=provenance,
+            notes=notes,
+        )
+        add_candidate_metrics(
+            rows,
+            f"{base}/{run_dir}_unseen_genera/zero_shot_metrics/zero_shot_candidate_metrics.json",
+            track="COI fish-tree",
+            marker="COI",
+            dataset="fish_tree_clean_unseen_genera",
+            method=method,
+            split_prefix="unseen_genera_candidate_retrieval",
+            provenance=provenance,
+            notes=notes,
+        )
+        add_tree_recovery(
+            rows,
+            f"{base}/{run_dir}_tree_recovery_eval_c/tree_recovery_metrics.json",
+            dataset="fish_tree_clean_eval_c",
+            method=method,
+            split="eval_c_tree_recovery",
+            provenance=provenance,
+            notes=notes,
+        )
+        add_tree_recovery(
+            rows,
+            f"{base}/{run_dir}_tree_recovery_unseen_genera/tree_recovery_metrics.json",
+            dataset="fish_tree_clean_unseen_genera",
+            method=method,
+            split="unseen_genera_tree_recovery",
+            provenance=provenance,
+            notes=notes,
+        )
+
+
 def build_rows() -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
 
@@ -386,6 +728,9 @@ def build_rows() -> list[dict[str, Any]]:
     add_curriculum(rows, "results/remote_runs/2026-05-25/rtx_pro/coi_v3_char/multihead_hierarchical_results.json", track="COI", marker="COI", dataset="processed_clean", method="char multihead curriculum", provenance=v3)
 
     add_phylo(rows)
+    add_global_edna(rows)
+    add_may30_taxdna_ssm(rows)
+    add_may30_fish_tree(rows)
 
     kmer_paths = {
         "mitohelper_full": "results/edna_12s_full_kmer/eval_c_kmer6_results.json",

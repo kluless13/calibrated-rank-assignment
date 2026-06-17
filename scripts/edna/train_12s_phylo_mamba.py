@@ -32,6 +32,7 @@ from phylo_zero_shot_common import (  # noqa: E402
     ranked_predictions,
     reference_dataframe,
     save_tree_embedding_npz,
+    save_query_embedding_npz,
     split_reference_dataframe,
     write_prediction_csv,
 )
@@ -349,10 +350,21 @@ def main() -> None:
     parser.add_argument("--family-positive-weight", type=float, default=0.1)
     parser.add_argument("--order-positive-weight", type=float, default=0.03)
     parser.add_argument("--val-fraction", type=float, default=0.1)
+    parser.add_argument(
+        "--validation-mode",
+        choices=["auto", "species_file", "random_species", "random_sequence"],
+        default="auto",
+        help=(
+            "How to split reference sequences for model selection. Use random_sequence "
+            "for clean fish-tree reruns where val_species.json would hold out most "
+            "reference species from training."
+        ),
+    )
     parser.add_argument("--top-k", type=int, default=50)
     parser.add_argument("--num-workers", type=int, default=4)
     parser.add_argument("--seed", type=int, default=1206)
     parser.add_argument("--train-only-reference", action="store_true")
+    parser.add_argument("--write-query-embeddings", action="store_true")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
@@ -412,6 +424,7 @@ def main() -> None:
         input_dir=args.input_dir,
         val_fraction=args.val_fraction,
         seed=args.seed,
+        validation_mode=args.validation_mode,
     )
     rank_id_arrays = build_rank_id_arrays(args.input_dir, candidate_labels) if args.loss_mode in HIERARCHICAL_LOSS_MODES else None
     needs_species_index = args.loss_mode in {"contrastive", "hybrid"} | HIERARCHICAL_LOSS_MODES
@@ -466,6 +479,21 @@ def main() -> None:
     )
     prediction_csv = args.output_dir / "zero_shot_candidate_predictions.csv"
     write_prediction_csv(prediction_csv, inputs.zero_shot_queries, ranked_labels, ranked_scores)
+    query_embedding_npz = None
+    if args.write_query_embeddings:
+        query_embedding_npz = args.output_dir / "query_embeddings.npz"
+        save_query_embedding_npz(
+            query_embedding_npz,
+            inputs.zero_shot_queries,
+            query_embeddings,
+            {
+                "input_dir": str(args.input_dir),
+                "checkpoint": str(checkpoint),
+                "tree_embedding_npz": str(args.tree_embedding_npz),
+                "model": "phylo_mamba",
+                "max_seq_len": args.max_seq_len,
+            },
+        )
 
     metrics_dir = args.output_dir / "zero_shot_metrics"
     subprocess.run(
@@ -490,6 +518,7 @@ def main() -> None:
         "tree_embedding_npz": str(args.tree_embedding_npz),
         "checkpoint": str(checkpoint),
         "prediction_csv": str(prediction_csv),
+        "query_embedding_npz": str(query_embedding_npz) if query_embedding_npz else None,
         "metrics_dir": str(metrics_dir),
         "candidate_count": len(candidate_labels),
         "reference_sequences": len(ref_df),

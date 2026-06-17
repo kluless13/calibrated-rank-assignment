@@ -55,11 +55,11 @@ All on audited, leakage-free splits (species held out before training).
 | Rediscovery head-to-head (species AMI) | VSEARCH 0.915 / cd-hit 0.886 / ours 0.874; **ours wins family 0.756** | `vsearch_delimitation.json`, … |
 | Fast retrieval | 0.40 ms exact, 0.0048 ms HNSW / query | `controlled_vector_speed_benchmark.csv` |
 
-Figures for these are under
-`results/paper1_phylo_calibrated_assignment/manuscript_assets/experiment1/figures/`
+Figures for these are tracked under
+[`results/paper1_phylo_calibrated_assignment/manuscript_assets/experiment1/figures/`](results/paper1_phylo_calibrated_assignment/manuscript_assets/experiment1/figures/)
 (place-audit controls, rediscovery head-to-head, tree-vs-species frontier,
 prospective calibration). Regenerate with
-`python3 scripts/figures/plot_experiment1_figures.py`.
+[`scripts/figures/plot_experiment1_figures.py`](scripts/figures/plot_experiment1_figures.py).
 
 ## What is novel vs conceded (honest positioning)
 
@@ -74,16 +74,54 @@ false-species-call rate.
 classical methods (BLAST/VSEARCH — kept as strong baselines; they win at species
 clustering); species rediscovery (classical wins — an honest benchmark, not a win).
 
-See `experiments/paper1_phylo_calibrated_assignment/NOVELTY_AND_PRIOR_ART.md` for
-the full prior-art audit and concessions.
+See [NOVELTY_AND_PRIOR_ART.md](experiments/paper1_phylo_calibrated_assignment/NOVELTY_AND_PRIOR_ART.md)
+for the full prior-art audit and concessions.
 
-## Start here (key docs)
+## Documentation
 
-- `experiments/paper1_phylo_calibrated_assignment/EXPERIMENT_1_PIPELINE_SCOPE.md` — authoritative scope, verified-vs-todo
-- `experiments/paper1_phylo_calibrated_assignment/NOVELTY_AND_PRIOR_ART.md` — novelty + priority concessions
-- `experiments/paper1_phylo_calibrated_assignment/REDISCOVERY_BENCHMARK.md` — classical vs neural vs frontier
-- `experiments/paper1_phylo_calibrated_assignment/COAUTHOR_BRIEF.md` — full results brief
-- `experiments/paper1_phylo_calibrated_assignment/CLAIM_BOUNDARIES.md` — what we do and do not claim
+All paper docs live under
+[`experiments/paper1_phylo_calibrated_assignment/`](experiments/paper1_phylo_calibrated_assignment/).
+
+**Start here**
+
+- [Experiment-1 scope](experiments/paper1_phylo_calibrated_assignment/EXPERIMENT_1_PIPELINE_SCOPE.md) — authoritative scope, verified-vs-todo, decisions
+- [Coauthor brief](experiments/paper1_phylo_calibrated_assignment/COAUTHOR_BRIEF.md) — full results brief and open questions
+- [Novelty & prior art](experiments/paper1_phylo_calibrated_assignment/NOVELTY_AND_PRIOR_ART.md) — what's novel vs conceded, with citations
+- [Claim boundaries](experiments/paper1_phylo_calibrated_assignment/CLAIM_BOUNDARIES.md) — what we do and do not claim
+- [Paper storyline](experiments/paper1_phylo_calibrated_assignment/PAPER_STORYLINE.md) — the narrative arc
+
+**Pipeline & results**
+
+- [Pipeline architecture](experiments/paper1_phylo_calibrated_assignment/PIPELINE.md)
+- [Current results](experiments/paper1_phylo_calibrated_assignment/CURRENT_RESULTS.md)
+- [Rediscovery benchmark](experiments/paper1_phylo_calibrated_assignment/REDISCOVERY_BENCHMARK.md) — classical vs neural vs frontier
+- [Comparator matrix](experiments/paper1_phylo_calibrated_assignment/COMPARATOR_MATRIX.md)
+- [Encoder benchmarks](experiments/paper1_phylo_calibrated_assignment/ENCODER_BENCHMARKS.md)
+- [Source-tables index](experiments/paper1_phylo_calibrated_assignment/SOURCE_TABLES.md)
+
+**Manuscript**
+
+- [Manuscript assets](experiments/paper1_phylo_calibrated_assignment/MANUSCRIPT_ASSETS.md)
+- [Merged manuscript outline](experiments/paper1_phylo_calibrated_assignment/MERGED_MANUSCRIPT_OUTLINE.md)
+
+**Positioning & prior art**
+
+- [Literature review](docs/LITERATURE_REVIEW.md)
+- [Literature gaps](experiments/paper1_phylo_calibrated_assignment/LITERATURE_GAPS.md)
+- [Fernando 2025 positioning](experiments/paper1_phylo_calibrated_assignment/FERNANDO_2025_POSITIONING.md)
+- [DEPP / H-DEPP notes](experiments/paper1_phylo_calibrated_assignment/DEPP_HDEPP_NOTES.md)
+- [Pipeline novelty deep dive](experiments/paper1_phylo_calibrated_assignment/PIPELINE_NOVELTY_DEEP_DIVE.md)
+
+**Production**
+
+- [Production pipeline v1](experiments/paper1_phylo_calibrated_assignment/PRODUCTION_PIPELINE_V1.md)
+- [Production CLI v1](experiments/paper1_phylo_calibrated_assignment/PRODUCTION_CLI_V1.md)
+
+**12S / cross-marker (Experiment 2 track)**
+
+- [MarkerMirror coauthor one-pager](experiments/paper1_phylo_calibrated_assignment/MARKER_MIRROR_COAUTHOR_ONE_PAGER.md)
+- [MarkerMirror prospect](experiments/paper1_phylo_calibrated_assignment/MARKER_MIRROR_PROSPECT.md)
+- [MarkerMirror 12S CLI](experiments/paper1_phylo_calibrated_assignment/MARKER_MIRROR_12S_CLI.md)
 
 ## Repository layout
 

@@ -1,9 +1,10 @@
 # Literature Review: DNA Barcode Classification with SSMs and Foundation Models
 
-Note: for the current paper plan and eDNA/12S claim boundary, use
-`docs/LITERATURE_PARALLEL_WORK_VALUE_ADD.md`. This older note is kept as
-background on barcode/foundation-model papers and should not be treated as the
-current manuscript positioning by itself.
+> **SUPERSEDED (legacy).** This note is framed around the abandoned
+> "MarineMamba SSM vs foundation model" thesis and is retained only as background.
+> The canonical, current literature positioning for the paper is
+> `experiments/paper1_phylo_calibrated_assignment/NOVELTY_AND_PRIOR_ART.md`.
+> Do not use this file for the manuscript's novelty case.
 
 ## Barcode-Specific Models
 

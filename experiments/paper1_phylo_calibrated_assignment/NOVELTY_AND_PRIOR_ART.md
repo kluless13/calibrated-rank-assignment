@@ -222,6 +222,18 @@ order) and do not claim to.
     comparator (EPA-ng/APPLES); we run Fernando-*style* sweeps, not exact PCP.
 13. **BarcodeMamba** — Gao & Taylor, arXiv:2412.11084 — namesake SSM barcode
     model; cite to avoid name confusion.
+14. **Villon et al. 2026** — DOI 10.3390/biology15030285 (*Biology* 15(3):285) —
+    *closest motivation-sharing work.* A **closed-set** position-aware CNN softmax
+    classifier on 12S teleo amplicons that beats reference-based tools at
+    genus/family when the query species is absent, but **cannot abstain, cannot
+    detect out-of-class novelty, and reports no calibrated error rate** — a query
+    from an unseen family is forced into a known class with a confident score. We
+    reframe as calibrated, open-set rank/no-call inference. Must cite and contrast.
+15. **Zito, Rigon & Dunson 2023** (BayesANT) — DOI 10.1111/2041-210X.14009
+    (*Methods Ecol. Evol.* 14:529–542) — nearest **rank-adaptive / new-taxon
+    discovery** prior work: Bayesian species-sampling priors that discover
+    unobserved taxa at each rank. Non-DL; not integrated with tree-geometry
+    placement, a measured false-species-call rate, or reference-curation.
 
 ---
 

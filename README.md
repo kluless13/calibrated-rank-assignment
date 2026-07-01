@@ -109,7 +109,6 @@ All paper docs live under
 
 **Positioning & prior art**
 
-- [Literature review](docs/LITERATURE_REVIEW.md)
 - [Fernando 2025 positioning](experiments/paper1_phylo_calibrated_assignment/FERNANDO_2025_POSITIONING.md)
 - [DEPP / H-DEPP notes](experiments/paper1_phylo_calibrated_assignment/DEPP_HDEPP_NOTES.md)
 

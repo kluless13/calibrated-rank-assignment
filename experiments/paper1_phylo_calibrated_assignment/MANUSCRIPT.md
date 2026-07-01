@@ -1,10 +1,15 @@
 # Calibrated rank-adaptive biodiversity inference from DNA barcodes under missing references
 
-**Working draft — Paper 1 (Experiment 1).** Target venue: *Molecular Ecology
-Resources*. This is the full COI pipeline paper; the 12S cross-marker bridging
-work (MarkerMirror) and the learned Eco-Phylo posterior at scale are deferred to
-Paper 2 and appear here only as the marker-ceiling boundary (§4.6). Numbers are
-drawn from the tracked source tables; see [SOURCE_TABLES.md](SOURCE_TABLES.md).
+**Working draft.** Target venue: *Ecological Informatics* (Elsevier). This is the
+full COI pipeline paper; 12S cross-marker bridging and a learned eco-phylogenetic
+posterior at scale are out of scope here and appear only as the marker-ceiling
+boundary (§4.6), noted as directions for future work. Numbers are drawn from the
+tracked source tables; see [SOURCE_TABLES.md](SOURCE_TABLES.md).
+
+**Authors:** _[Author One]¹, [Author Two]², … [corresponding author ✉]_ — *to be
+completed (names, ORCIDs, order).*
+**Affiliations:** _¹[Institution]; ²[Institution] — to be completed._
+**Corresponding author:** _[name, email] — to be completed._
 
 ---
 
@@ -64,14 +69,20 @@ by a calibrated, *measured* error rate. A doctor who cannot identify the precise
 pathogen names the most specific category the evidence supports rather than
 inventing a strain; biodiversity assignment should do the same.
 
+The value of reliable higher-rank assignment under incomplete references is
+increasingly recognised — Villon et al. (2026) show a neural classifier
+outperforming reference-based tools at genus and family when the query species is
+absent — but existing approaches remain closed-set and uncalibrated; we treat the
+problem as calibrated, open-set inference (positioned fully in §2).
+
 This paper makes the following contributions:
 
 1. **A reframing and an end-to-end pipeline** that returns calibrated
    species/genus/family/order/no-call decisions by fusing multiple, separately
-   measured streams of evidence (§2).
+   measured streams of evidence (§3.1).
 2. **A missing-reference evaluation regime** — leakage-audited splits plus
    strict stress tests that hide species, genera, or families before training —
-   that makes abstention testable (§3, §4.5).
+   that makes abstention testable (§3.5, §4.5).
 3. **A conservative operating point with a measured 0% false-species-call rate**,
    shown to hold under *prospective, species-disjoint* calibration (§4.1).
 4. **An honest characterisation of the learned representation**: it genuinely
@@ -92,7 +103,67 @@ to have invented them, and we do not claim to beat alignment-based methods at
 fine-grained clustering. Our novelty is the integration, the calibrated
 missing-reference regime, and the open-set detection axis.
 
-## 2. The pipeline
+## 2. Related work
+
+We organise prior art by the axis of our pipeline it touches, and state plainly
+where priority belongs to others.
+
+**Tree-distance barcode embeddings.** Learning a representation in which sequence
+distance approximates phylogenetic-tree distance is established. Stalder et al.
+(2025) embed fish 12S eDNA barcodes into a phylogenetic space on the same Fish
+Tree of Life we use, combine it with species co-occurrence for zero-shot
+annotation of unknown sequences, and report a probability-calibration analysis;
+DEPP (Jiang et al. 2023) learns to place sequences on a species tree. We adopt
+this idea rather than claim it; our tree-geometry encoder is a component, and its
+distinctive use here is to power open-set detection and rank back-off, not to
+advance placement per se.
+
+**Learned vs. k-mer representations.** kf2vec (Rachtman et al. 2025) already
+established that learned barcode embeddings outperform raw k-mer frequencies for
+distance and placement. Our k-mer control (§4.2) is a confirmation of that finding
+on fish COI, not a new result.
+
+**Open-set novelty detection.** Recognising that a query lies *outside* the
+reference — rather than forcing it into the nearest known class — is the relatively
+open axis. Fujisawa & Imai (2026) benchmark out-of-distribution detectors for
+insect COI barcoding and show that detection degrades sharply on short fragments,
+a caveat we inherit at the 12S marker ceiling (§4.6). No prior barcode method,
+to our knowledge, integrates open-set detection into a calibrated rank/no-call
+decision, and this is our lead model-level contribution (§4.3).
+
+**Neural clustering and species delimitation.** Unsupervised recovery of species
+from barcode embeddings exists in neural form (BarcodeBERT, Millan Arias et al.
+2026; DNABERT-S, Zhou et al. 2025) and, classically, as identity-threshold or
+gap-based delimitation (BIN, Ratnasingham & Hebert 2013; ABGD, Puillandre et al.
+2012; ASAP, Puillandre et al. 2021), which we use as strong baselines (§4.4). We
+concede that clustering-based rediscovery is not where we win.
+
+**Closed-set neural assignment under missing references.** Closest to our
+*motivation*, Villon et al. (2026) show that a closed-set, position-aware CNN
+softmax classifier outperforms reference-based tools (Kraken2, OBITools, Lolo) at
+genus- and family-level assignment when the query species is absent from training.
+But their classifier is trained on a fixed set of families and genera: it cannot
+abstain, cannot recognise a taxon outside its training classes, and reports no
+calibrated error rate — indeed, because every test taxon's genus and family are
+still training classes, a query from a genuinely unseen family is forced into a
+known class with a confident softmax score, which is exactly the failure mode we
+measure and prevent (§4.3, §4.5). We reframe the same problem as calibrated,
+open-set inference: the deepest defensible rank or an explicit no-call with a
+measured false-species-call rate, plus tree-geometry placement, novelty detection,
+and an active-curation loop.
+
+**Probabilistic and rank-aware assignment.** Probabilistic taxonomic classifiers
+report rank-wise confidence (PROTAX, Somervuo et al. 2016; IDTAXA, Murali et al.
+2018), and Zito et al. (2023) use Bayesian species-sampling priors to allow
+unobserved taxa to be discovered at each rank — conceptually the nearest prior
+work to rank-adaptive assignment with abstention. These are not deep-learning
+systems and are not integrated with tree-geometry placement, a measured
+false-species-call rate, or reference-curation; our contribution is that
+integration under an audited missing-reference regime.
+
+## 3. Methods
+
+### 3.1 The pipeline architecture
 
 The system is an **evidence compiler** (Figure 1). A query barcode passes through
 ordered stations, each contributing a distinct, independently measurable kind of
@@ -123,30 +194,76 @@ The design principle is **evidence separation**: each stream is measured on its
 own before fusion, which is what makes the system auditable and its error rate
 calibratable.
 
-## 3. Evaluation design
+### 3.2 Sequence encoder and training objective
 
-**Splits.** All experiments use fish COI sequences mapped to the Fish Tree of
-Life (Rabosky et al. 2018; ~11,638 species with genetic data on the
-time-calibrated actinopterygian backbone). Splits are audited to be leakage-free
-— species are removed before training, with exact-sequence and process-ID
-deduplication, and an overlap audit confirming zero intersection. Two held-out
-regimes test progressively harder novelty:
+The learned encoder is a character-level convolutional network. Nucleotide tokens
+are embedded (32-dimensional, with a padding token), passed through three stacked
+dilated 1-D convolutions (256 channels; kernel sizes 7, 5, 3 with dilations 1, 2,
+4 respectively, each followed by GELU and dropout 0.1) to give a multi-scale
+receptive field over the barcode, then reduced by concatenated masked mean- and
+max-pooling and projected through a two-layer head (512→256→512, GELU, dropout) to
+a **512-dimensional** embedding. We frame results as encoder-agnostic: the CNN is
+the strongest encoder we tested, but the objective, not the architecture, is the
+claim.
+
+The training **target** is a per-species tree embedding: for the fish species on
+the Fish Tree of Life we pre-learn 512-D vectors whose cosine distances match
+patristic tree distances (gradient descent, AdamW). The encoder is then trained to
+map a sequence to its species' tree vector under a composite objective,
+
+> L = w_tree · L_cosine + w_species · L_contrastive,
+
+where L_cosine = 1 − cos(prediction, tree target) is the tree-distance regression
+term and L_contrastive is an InfoNCE loss (temperature 0.07) over candidate
+reference species. Sweeping the weight ratio w_tree : w_species traces the
+tree-vs-species Pareto frontier reported in §4.4; the tree-only anchor sets
+w_species = 0. Training uses AdamW (learning rate 5×10⁻⁴, weight decay 0.01),
+cosine-annealed over 40 epochs, batch size 64, fixed seed 1206.
+
+### 3.3 Data, taxonomy mapping, and splits
+
+Sequences come from a BOLD Teleostei COI pull (318,829 sequences spanning 23,663
+nominal species). Because the training target requires a position on the Fish Tree
+of Life (Rabosky et al. 2018; ~11,638 species with genetic data on the
+time-calibrated actinopterygian backbone), we restrict to species present on that
+tree, then deduplicate on exact sequence and on process ID and run a leakage audit
+that removes held-out species before training and confirms zero intersection
+between reference and evaluation sets. The resulting modelled set is partitioned
+into a **reference** library of 3,839 species (the searchable set) and two
+held-out regimes of increasing difficulty:
 
 - **Eval C** — 531 species held out entirely (11,594 reads), with their genera
-  still represented (tests species-level novelty within known genera).
-- **Unseen genera** — 614 species across genera held out (9,148 reads; tests
+  still represented (species-level novelty within known genera).
+- **Unseen genera** — 614 species whose genera are held out (9,148 reads;
   genus-level novelty).
-- A **reference** set of 3,839 species supplies the searchable library.
+
+*(This single lineage — raw BOLD pull → Fish-Tree-mapped subset → dedup and
+leakage audit → the three splits — is the authoritative dataset description; the
+earlier "318K sequences / 23,663 species" figure refers to the raw pull, not the
+modelled set.)*
 
 **Missing-reference stress tests.** Beyond holding species out, we additionally
 *prune the candidate set* before training: separate runs hide all species, all
 genera, or all families of the query, forcing the model to operate when a given
-rank is unsupported (§4.5).
+rank is entirely unsupported (§4.5).
 
-**Prospective calibration.** Decision thresholds are fit on one set of species
-and applied to a *disjoint* set never used to set them, repeated 30 times, so
-reported operating points reflect transfer to genuinely unseen taxa rather than
-in-sample tuning (§4.1).
+### 3.4 Open-set novelty detector (DETECT)
+
+Novelty detection uses features computed from a query's reference neighbourhood:
+the top-1 similarity, the top-1-to-next margin, the genus consensus among the top
+neighbours, the mean top-k similarity, and the number of reference neighbours
+retained in the top-k (`ref_top1`, `ref_margin`, `ref_genus_consensus`,
+`ref_topk_mean`, `ref_n_ref_in_topk`). We report both single-feature AUROC
+(reference-only) and a multi-feature logistic detector trained and evaluated on
+disjoint calibration and evaluation species so that reported detection reflects
+transfer to unseen taxa (§4.3).
+
+### 3.5 Calibration and evaluation protocol
+
+**Prospective calibration.** Per-rank decision thresholds are fit at a target
+assigned-precision of 0.99 on one set of species and applied to a *disjoint* set
+never used to set them, repeated 30 times, so reported operating points reflect
+transfer to genuinely unseen taxa rather than in-sample tuning (§4.1).
 
 **Metrics.** Coverage (fraction of queries assigned rather than no-called),
 assigned precision (fraction of assignments correct at their rank),
@@ -154,6 +271,15 @@ false-species-call rate (fraction confidently assigned a wrong species), tree
 recovery (Pearson correlation between embedding distance and tree distance),
 novelty AUROC, and adjusted mutual information (AMI) for clustering. Terms are
 defined in the Glossary.
+
+### 3.6 Software, versions, and reproducibility
+
+Classical comparators are BLAST+ (Camacho et al. 2009), VSEARCH 2.28 (Rognes et
+al. 2016), CD-HIT (Fu et al. 2012), and, for placement, EPA-ng (Barbera et al.
+2019) and official APPLES 2.0.11 (Balaban et al. 2020). Neural models are
+implemented in PyTorch; the fixed random seed (1206) is used throughout, and all
+run commands, versions, and output paths are recorded in the dated ledgers under
+`configs/runs/`. Code and derived split manifests are released with the paper.
 
 ## 4. Results
 
@@ -210,7 +336,7 @@ one cleanly novel result at the model level.
 
 We benchmark **unsupervised species rediscovery** — clustering reads from
 held-out species and asking whether clusters recover true taxa — against
-established tools (Figure 6). At cluster count fixed to the true species number
+established tools (Figure 5). At cluster count fixed to the true species number
 (KMeans, k = 531), classical alignment clustering leads at the fine ranks:
 VSEARCH 0.915 and cd-hit (Fu et al. 2012) 0.886 species AMI versus our
 embedding's 0.874, while a frozen invertebrate-trained foundation model
@@ -223,11 +349,11 @@ species delimitation naturally over-segments: intraspecific variation splits a
 true species across several clusters, and the best classical results themselves
 use ~1,200 clusters for 531 true species. When our embedding is allowed to
 over-segment to a matched granularity via blind thresholding (1,229 clusters), its
-species AMI rises to **0.915 — tying VSEARCH's 0.915 (1,203 clusters)** (Figure 7).
+species AMI rises to **0.915 — tying VSEARCH's 0.915 (1,203 clusters)** (Figure 6).
 At matched cluster granularity, the learned representation is on par with the
 classical gold standard at species clustering.
 
-The honest caveat is the frontier (§4.4 continued, Figure 8): the configuration
+The honest caveat is the frontier (§4.4 continued, Figure 7): the configuration
 that reaches 0.915 species AMI is the species-leaning variant, whose tree recovery
 falls to ~0.59. Sweeping the loss weighting between tree-distance and
 species-contrastive objectives traces a strict Pareto frontier — keep tree
@@ -242,12 +368,15 @@ do-everything embedding — a finding, not a defeat.
 
 When a rank's references are hidden before training, the model does not
 hallucinate that rank — it collapses to zero there and recovers the next broader
-rank (Figure 5). On Eval C: hiding species drops species retrieval to 0% while
+rank (Figure 8). On Eval C: hiding species drops species retrieval to 0% while
 genus/family/order remain recoverable (41.8 / 62.9 / 83.9% top-10); hiding genera
 drops species and genus to 0% while family/order persist (56.3 / 75.1%); hiding
 families leaves only order (40.9%). The pattern is identical on unseen genera.
 This is direct evidence that the rank/no-call policy is grounded in available
-evidence rather than overconfident extrapolation.
+evidence rather than overconfident extrapolation. A fixed-class classifier cannot
+exhibit this behaviour: with no class outside its training taxa, a query from a
+hidden family is necessarily forced into a known family with a confident score —
+the failure mode our detector (§4.3) and back-off measure and prevent.
 
 ### 4.6 Classical and placement comparators, and the marker ceiling
 
@@ -263,8 +392,9 @@ The **marker ceiling** motivates the whole rank-adaptive stance. For the shorter
 impossible regardless of method — the marker simply does not carry the
 information. We therefore treat 12S/eDNA as a boundary: genus and family are
 reachable, species is marker-limited, and forcing species there would be
-precisely the error this paper is designed to avoid. The cross-marker bridging
-that partially addresses this (MarkerMirror) is the subject of Paper 2.
+precisely the error this paper is designed to avoid. Cross-marker bridging that
+could partially address this — mapping a short marker into the representation of a
+more informative one — is a natural direction for future work.
 
 ### 4.7 Active reference-curation
 
@@ -297,120 +427,105 @@ open-set detection axis, and the active-curation layer.
 
 **Limits.** Species-level eDNA on the shorter 12S marker is intentionally out of
 scope as a species claim; the cross-marker and learned-posterior extensions are
-deferred to Paper 2. The encoder here is a CNN; we frame results as
+left to future work. The encoder here is a CNN; we frame results as
 encoder-agnostic and do not claim a particular architecture is best. The current
 system is a research pipeline, not a deployed service.
 
 **Future work.** A conformal-prediction layer would turn the calibrated
 thresholds into formal coverage guarantees; cross-marker bridging and a learned
-eco-phylogenetic posterior extend the approach to multi-marker eDNA (Paper 2).
+eco-phylogenetic posterior would extend the approach to multi-marker eDNA.
 
 ## 6. Figures
 
-- **Figure 1** — `fig_pipeline_architecture` — the evidence-compiler pipeline.
+- **Figure 1** — `fig_pipeline_architecture` — the evidence-compiler pipeline (§3.1).
 - **Figure 2** — `fig4_prospective_calibration` — species-disjoint operating
-  point; 0% false species across 30 repeats.
+  point; 0% false species across 30 repeats (§4.1).
 - **Figure 3** — `fig1_place_audit_controls` — tree recovery vs k-mer baseline and
-  shuffled-tree control.
-- **Figure 4** — `fig_detect_novelty` — open-set novelty AUROC by rank.
-- **Figure 5** — `fig_missing_reference_collapse` — rank collapse under hidden
-  references.
-- **Figure 6** — `fig2_rediscovery_headtohead` — classical vs neural species
-  rediscovery.
-- **Figure 7** — `fig_rediscovery_granularity` — species AMI vs cluster
-  granularity; embedding ties VSEARCH at matched ~1.2k clusters.
-- **Figure 8** — `fig3_tree_species_frontier` — the tree-vs-species Pareto
-  frontier.
+  shuffled-tree control (§4.2).
+- **Figure 4** — `fig_detect_novelty` — open-set novelty AUROC by rank (§4.3).
+- **Figure 5** — `fig2_rediscovery_headtohead` — classical vs neural species
+  rediscovery (§4.4).
+- **Figure 6** — `fig_rediscovery_granularity` — species AMI vs cluster
+  granularity; embedding ties VSEARCH at matched ~1.2k clusters (§4.4).
+- **Figure 7** — `fig3_tree_species_frontier` — the tree-vs-species Pareto
+  frontier (§4.4).
+- **Figure 8** — `fig_missing_reference_collapse` — rank collapse under hidden
+  references (§4.5).
 
 All figures are in `manuscript_assets/experiment1/figures/` (PNG + PDF) and are
 regenerated by `scripts/figures/plot_experiment1_figures.py` and
 `scripts/figures/plot_manuscript_figures.py`.
 
+## Declarations
+
+**Data availability.** Sequence data derive from public BOLD Teleostei COI records
+and the Fish Tree of Life (Rabosky et al. 2018; https://doi.org/10.1038/s41586-018-0273-1).
+The derived, leakage-audited split manifests (with per-record BOLD/process IDs) and
+all source tables underlying the reported figures are released with the code
+repository; raw accession lists will be deposited on acceptance. _[BOLD accession
+list / archive DOI — to be completed.]_
+
+**Code availability.** All analysis code, run ledgers, and figure scripts are in
+the project repository (`calibrated-rank-assignment`); a tagged release with a
+Zenodo DOI will accompany submission. _[Zenodo DOI — to be completed.]_
+
+**Funding.** _[Funding sources / grant numbers — to be completed.]_
+
+**Author contributions.** _[CRediT roles — to be completed.]_
+
+**Declaration of competing interest.** _The authors declare no competing
+interests._ _[Confirm at submission.]_
+
 ## 7. References
 
-Balaban, M., Sarmashghi, S. & Mirarab, S. (2020). APPLES: Scalable Distance-Based
-Phylogenetic Placement with or without Alignments. *Systematic Biology*, 69(3),
-566–578. https://doi.org/10.1093/sysbio/syz063
+*Reference style: Elsevier (name–date). Journal titles abbreviated; to be
+finalised against the Ecological Informatics guide via a CSL style at submission.*
 
-Barbera, P., Kozlov, A.M., Czech, L., Morel, B., Darriba, D., Flouri, T. &
-Stamatakis, A. (2019). EPA-ng: Massively Parallel Evolutionary Placement of
-Genetic Sequences. *Systematic Biology*, 68(2), 365–369.
-https://doi.org/10.1093/sysbio/syy054
+Balaban, M., Sarmashghi, S., Mirarab, S., 2020. APPLES: scalable distance-based phylogenetic placement with or without alignments. Syst. Biol. 69, 566–578. https://doi.org/10.1093/sysbio/syz063
 
-Camacho, C., Coulouris, G., Avagyan, V., Ma, N., Papadopoulos, J., Bealer, K. &
-Madden, T.L. (2009). BLAST+: architecture and applications. *BMC Bioinformatics*,
-10, 421. https://doi.org/10.1186/1471-2105-10-421
+Barbera, P., Kozlov, A.M., Czech, L., Morel, B., Darriba, D., Flouri, T., Stamatakis, A., 2019. EPA-ng: massively parallel evolutionary placement of genetic sequences. Syst. Biol. 68, 365–369. https://doi.org/10.1093/sysbio/syy054
 
-Fernando, M.A.T.M., Fu, J. & Adamowicz, S.J. (2025). Testing Phylogenetic
-Placement Accuracy of DNA Barcode Sequences on a Fish Backbone Tree: Implications
-of Backbone Tree Completeness and Species Representation. *Ecology and Evolution*,
-15(1), e70817. https://doi.org/10.1002/ece3.70817
+Camacho, C., Coulouris, G., Avagyan, V., Ma, N., Papadopoulos, J., Bealer, K., Madden, T.L., 2009. BLAST+: architecture and applications. BMC Bioinformatics 10, 421. https://doi.org/10.1186/1471-2105-10-421
 
-Fu, L., Niu, B., Zhu, Z., Wu, S. & Li, W. (2012). CD-HIT: accelerated for
-clustering the next-generation sequencing data. *Bioinformatics*, 28(23),
-3150–3152. https://doi.org/10.1093/bioinformatics/bts565
+Fernando, M.A.T.M., Fu, J., Adamowicz, S.J., 2025. Testing phylogenetic placement accuracy of DNA barcode sequences on a fish backbone tree: implications of backbone tree completeness and species representation. Ecol. Evol. 15, e70817. https://doi.org/10.1002/ece3.70817
 
-Hebert, P.D.N., Cywinska, A., Ball, S.L. & deWaard, J.R. (2003). Biological
-identifications through DNA barcodes. *Proceedings of the Royal Society B:
-Biological Sciences*, 270(1512), 313–321. https://doi.org/10.1098/rspb.2002.2218
+Fu, L., Niu, B., Zhu, Z., Wu, S., Li, W., 2012. CD-HIT: accelerated for clustering the next-generation sequencing data. Bioinformatics 28, 3150–3152. https://doi.org/10.1093/bioinformatics/bts565
 
-Jiang, Y., Balaban, M., Zhu, Q. & Mirarab, S. (2023). DEPP: Deep Learning Enables
-Extending Species Trees using Single Genes. *Systematic Biology*, 72(1), 17–34.
-https://doi.org/10.1093/sysbio/syac031
+Fujisawa, T., Imai, T., 2026. Performance and limitations of out-of-distribution detection for insect DNA barcoding. Ecol. Evol. 16, e73112. https://doi.org/10.1002/ece3.73112
 
-Millan Arias, P., Sadjadi, N., Safari, M., Gong, Z., Wang, A.T., Haurum, J.B.,
-Zarubiieva, I., Steinke, D., Kari, L., Chang, A.X., Lowe, S.C. & Taylor, G.W.
-(2026). BarcodeBERT: transformers for biodiversity analyses. *Bioinformatics
-Advances*, 6(1), vbag054. https://doi.org/10.1093/bioadv/vbag054
+Hebert, P.D.N., Cywinska, A., Ball, S.L., deWaard, J.R., 2003. Biological identifications through DNA barcodes. Proc. R. Soc. B 270, 313–321. https://doi.org/10.1098/rspb.2002.2218
 
-Murali, A., Bhargava, A. & Wright, E.S. (2018). IDTAXA: a novel approach for
-accurate taxonomic classification of microbiome sequences. *Microbiome*, 6, 140.
-https://doi.org/10.1186/s40168-018-0521-5
+Jiang, Y., Balaban, M., Zhu, Q., Mirarab, S., 2023. DEPP: deep learning enables extending species trees using single genes. Syst. Biol. 72, 17–34. https://doi.org/10.1093/sysbio/syac031
 
-Puillandre, N., Brouillet, S. & Achaz, G. (2021). ASAP: assemble species by
-automatic partitioning. *Molecular Ecology Resources*, 21(2), 609–620.
-https://doi.org/10.1111/1755-0998.13281
+Li, W., Godzik, A., 2006. Cd-hit: a fast program for clustering and comparing large sets of protein or nucleotide sequences. Bioinformatics 22, 1658–1659. https://doi.org/10.1093/bioinformatics/btl158
 
-Puillandre, N., Lambert, A., Brouillet, S. & Achaz, G. (2012). ABGD, Automatic
-Barcode Gap Discovery for primary species delimitation. *Molecular Ecology*,
-21(8), 1864–1877. https://doi.org/10.1111/j.1365-294X.2011.05239.x
+Millan Arias, P., Sadjadi, N., Safari, M., Gong, Z., Wang, A.T., Haurum, J.B., Zarubiieva, I., Steinke, D., Kari, L., Chang, A.X., Lowe, S.C., Taylor, G.W., 2026. BarcodeBERT: transformers for biodiversity analyses. Bioinform. Adv. 6, vbag054. https://doi.org/10.1093/bioadv/vbag054
 
-Rabosky, D.L., Chang, J., Title, P.O., Cowman, P.F., Sallan, L., Friedman, M., et
-al. (2018). An inverse latitudinal gradient in speciation rate for marine fishes.
-*Nature*, 559(7714), 392–395. https://doi.org/10.1038/s41586-018-0273-1
+Murali, A., Bhargava, A., Wright, E.S., 2018. IDTAXA: a novel approach for accurate taxonomic classification of microbiome sequences. Microbiome 6, 140. https://doi.org/10.1186/s40168-018-0521-5
 
-Rachtman, E., Jiang, Y. & Mirarab, S. (2025). Machine Learning Enables
-Alignment-Free Distance Calculation and Phylogenetic Placement Using k-Mer
-Frequencies (kf2vec). *Molecular Ecology Resources*, e70055.
-https://doi.org/10.1111/1755-0998.70055
+Puillandre, N., Brouillet, S., Achaz, G., 2021. ASAP: assemble species by automatic partitioning. Mol. Ecol. Resour. 21, 609–620. https://doi.org/10.1111/1755-0998.13281
 
-Ratnasingham, S. & Hebert, P.D.N. (2013). A DNA-Based Registry for All Animal
-Species: The Barcode Index Number (BIN) System. *PLoS ONE*, 8(7), e66213.
-https://doi.org/10.1371/journal.pone.0066213
+Puillandre, N., Lambert, A., Brouillet, S., Achaz, G., 2012. ABGD, automatic barcode gap discovery for primary species delimitation. Mol. Ecol. 21, 1864–1877. https://doi.org/10.1111/j.1365-294X.2011.05239.x
 
-Rognes, T., Flouri, T., Nichols, B., Quince, C. & Mahé, F. (2016). VSEARCH: a
-versatile open source tool for metagenomics. *PeerJ*, 4, e2584.
-https://doi.org/10.7717/peerj.2584
+Rabosky, D.L., Chang, J., Title, P.O., Cowman, P.F., Sallan, L., Friedman, M., Eastman, J.M., Brown, J.W., Alfaro, M.E., Wainwright, P.C., et al., 2018. An inverse latitudinal gradient in speciation rate for marine fishes. Nature 559, 392–395. https://doi.org/10.1038/s41586-018-0273-1
 
-Somervuo, P., Koskela, S., Pennanen, J., Nilsson, R.H. & Ovaskainen, O. (2016).
-Unbiased probabilistic taxonomic classification for DNA barcoding.
-*Bioinformatics*, 32(19), 2920–2927. https://doi.org/10.1093/bioinformatics/btw346
+Rachtman, E., Jiang, Y., Mirarab, S., 2025. Machine learning enables alignment-free distance calculation and phylogenetic placement using k-mer frequencies (kf2vec). Mol. Ecol. Resour. e70055. https://doi.org/10.1111/1755-0998.70055
 
-Stalder, S., Sanchez, T., Volpi, M., Manel, S., Mouillot, D., Auber, A., Bruno,
-M., Marques, V., Albouy, C. & Pellissier, L. (2025). Zero-shot deep learning for
-the annotation of unknown eDNA sequences using co-occurrences and phylogenetic
-embeddings. *PLOS Computational Biology*, 21(12), e1013776.
-https://doi.org/10.1371/journal.pcbi.1013776
+Ratnasingham, S., Hebert, P.D.N., 2013. A DNA-based registry for all animal species: the Barcode Index Number (BIN) system. PLoS ONE 8, e66213. https://doi.org/10.1371/journal.pone.0066213
 
-Zhou, Z., Wu, W., Ho, H., Wang, J., Shi, L., Davuluri, R.V., Wang, Z. & Liu, H.
-(2025). DNABERT-S: pioneering species differentiation with species-aware DNA
-embeddings. *Bioinformatics*, btaf188. https://doi.org/10.1093/bioinformatics/btaf188
+Rognes, T., Flouri, T., Nichols, B., Quince, C., Mahé, F., 2016. VSEARCH: a versatile open source tool for metagenomics. PeerJ 4, e2584. https://doi.org/10.7717/peerj.2584
 
-TaxoTagger (software). MycoAI: semantic search for DNA barcode taxonomy
-identification. https://github.com/MycoAI/taxotagger
+Somervuo, P., Koskela, S., Pennanen, J., Nilsson, R.H., Ovaskainen, O., 2016. Unbiased probabilistic taxonomic classification for DNA barcoding. Bioinformatics 32, 2920–2927. https://doi.org/10.1093/bioinformatics/btw346
 
-*Methods software also used: CD-HIT (Fu et al. 2012) and the original CD-HIT
-(Li & Godzik 2006, Bioinformatics 22:1658–1659).*
+Stalder, S., Sanchez, T., Volpi, M., Manel, S., Mouillot, D., Auber, A., Bruno, M., Marques, V., Albouy, C., Pellissier, L., 2025. Zero-shot deep learning for the annotation of unknown eDNA sequences using co-occurrences and phylogenetic embeddings. PLoS Comput. Biol. 21, e1013776. https://doi.org/10.1371/journal.pcbi.1013776
+
+Villon, S., Mangeas, M., Berteaux-Lecellier, V., Vigliola, L., Lecellier, G., 2026. Fine-grained assignment of unknown marine eDNA sequences using neural networks. Biology (Basel) 15, 285. https://doi.org/10.3390/biology15030285
+
+Zhou, Z., Wu, W., Ho, H., Wang, J., Shi, L., Davuluri, R.V., Wang, Z., Liu, H., 2025. DNABERT-S: pioneering species differentiation with species-aware DNA embeddings. Bioinformatics btaf188. https://doi.org/10.1093/bioinformatics/btaf188
+
+Zito, A., Rigon, T., Dunson, D.B., 2023. Inferring taxonomic placement from DNA barcoding aiding in discovery of new taxa. Methods Ecol. Evol. 14, 529–542. https://doi.org/10.1111/2041-210X.14009
+
+TaxoTagger, 2024. MycoAI: semantic search for DNA barcode taxonomy identification (software). https://github.com/MycoAI/taxotagger
 
 ---
 

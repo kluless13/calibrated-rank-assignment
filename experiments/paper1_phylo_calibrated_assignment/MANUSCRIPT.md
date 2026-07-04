@@ -486,12 +486,15 @@ original draft, Writing – review & editing, Visualization, Project administrat
 
 **Declaration of competing interest.** The author declares no competing interests.
 
-**Declaration of Generative AI and AI-assisted technologies in the writing
-process.** During the preparation of this work the author used a generative-AI
-assistant to help with language readability and flow, and to help organise and
-format the manuscript. All research design, analysis, results, and scientific
-claims are the author's own; the author reviewed and edited all content and takes
-full responsibility for the content of the publication.
+**Declaration of generative AI and AI-assisted technologies in the manuscript
+preparation process.** During the preparation of this work the author used Claude
+(Anthropic) in order to assist with drafting, language and readability, and the
+organisation and formatting of the manuscript, and to help compile and format the
+reference list. After using this tool, the author reviewed and edited the content
+as needed — including independently verifying every cited source against the
+primary literature — and takes full responsibility for the content of the
+published article. All research design, data, analysis, results, interpretation,
+and scientific claims are the author's own original work.
 
 ## 7. References
 

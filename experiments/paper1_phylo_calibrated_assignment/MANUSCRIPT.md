@@ -277,8 +277,7 @@ transfer to genuinely unseen taxa rather than in-sample tuning (§4.1).
 assigned precision (fraction of assignments correct at their rank),
 false-species-call rate (fraction confidently assigned a wrong species), tree
 recovery (Pearson correlation between embedding distance and tree distance),
-novelty AUROC, and adjusted mutual information (AMI) for clustering. Terms are
-defined in the Glossary.
+novelty AUROC, and adjusted mutual information (AMI) for clustering.
 
 ### 3.6 Software, versions, and reproducibility
 
@@ -546,35 +545,3 @@ Zhou, Z., Wu, W., Ho, H., Wang, J., Shi, L., Davuluri, R.V., Wang, Z., Liu, H., 
 Zito, A., Rigon, T., Dunson, D.B., 2023. Inferring taxonomic placement from DNA barcoding aiding in discovery of new taxa. Methods Ecol. Evol. 14, 529–542. https://doi.org/10.1111/2041-210X.14009
 
 TaxoTagger, 2024. MycoAI: semantic search for DNA barcode taxonomy identification (software). https://github.com/MycoAI/taxotagger
-
----
-
-## Glossary
-
-- **DNA barcode** — a short standardised DNA region used for species
-  identification (e.g. COI in animals).
-- **eDNA** — environmental DNA: genetic material shed into the environment,
-  enabling detection without observing the organism.
-- **Reference database** — the catalogue of barcodes from identified specimens
-  that queries are compared against.
-- **Rank / rank-adaptive** — the taxonomic level (species, genus, family, order)
-  of an answer; rank-adaptive means choosing the deepest defensible level.
-- **No-call / abstention** — declining to assign because evidence is
-  insufficient.
-- **Coverage** — fraction of queries assigned (not no-called).
-- **Assigned precision** — fraction of assignments correct at their reported rank.
-- **False-species-call rate** — fraction of queries confidently assigned a wrong
-  species; the error driven to zero here.
-- **Prospective / species-disjoint calibration** — fitting thresholds on one set
-  of species and testing on a non-overlapping set, so results reflect transfer to
-  unseen taxa.
-- **Tree recovery (Pearson)** — correlation between embedding distance and
-  phylogenetic-tree distance; 1.0 is perfect, ~0 is none.
-- **AUROC** — area under the ROC curve; 0.5 is chance, 1.0 is perfect separation
-  (here, known vs novel).
-- **AMI (adjusted mutual information)** — clustering agreement with true labels;
-  0 is random, 1 is perfect.
-- **Pareto frontier** — the set of achievable trade-offs where improving one
-  objective (species clustering) necessarily worsens another (tree recovery).
-- **HNSW** — Hierarchical Navigable Small World, a fast approximate
-  nearest-neighbour index.

@@ -77,7 +77,7 @@ def fig_place_audit_controls() -> None:
     vals = [kmer["learned_for_comparison"], kmer["raw_6mer_cosine_vs_tree"]["pearson"]]
     bars = b.bar(["learned\nembedding", "raw 6-mer\ncosine"], vals,
                  color=[PALETTE["real"], PALETTE["control"]], width=0.6)
-    b.set_title("Eval C k-mer baseline (531 held-out sp.)", fontsize=11)
+    b.set_title("Held-out species: k-mer baseline (531 sp.)", fontsize=11)
     b.set_ylabel("tree recovery (Pearson)")
     b.set_ylim(0, 1)
     for bar, v in zip(bars, vals):

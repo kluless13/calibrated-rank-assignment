@@ -240,9 +240,9 @@ between reference and evaluation sets. The resulting modelled set is partitioned
 into a **reference** library of 3,839 species (the searchable set) and two
 held-out regimes of increasing difficulty:
 
-- **Eval C** — 531 species held out entirely (11,594 reads), with their genera
-  still represented (species-level novelty within known genera).
-- **Unseen genera** — 614 species whose genera are held out (9,148 reads;
+- **Held-out species** — 531 species held out entirely (11,594 reads), with their
+  genera still represented (species-level novelty within known genera).
+- **Held-out genera** — 614 species whose genera are held out (9,148 reads;
   genus-level novelty).
 
 *(This single lineage — raw BOLD pull → Fish-Tree-mapped subset → dedup and
@@ -293,8 +293,9 @@ run commands, versions, and output paths are recorded in the dated ledgers under
 ### 4.1 Calibrated rank/no-call with zero false species calls
 
 At a conservative target precision (0.99) with p-distance reranking, the pipeline
-reaches **95.8% coverage at 93.0% assigned precision on Eval C, and 92.3% /
-83.9% on unseen genera, with a false-species-call rate of 0.0% in both** — under
+reaches **95.8% coverage at 93.0% assigned precision on held-out species, and
+92.3% / 83.9% on held-out genera, with a false-species-call rate of 0.0% in
+both** — under
 missing references it backs off to a correct broader rank rather than inventing a
 species.
 
@@ -317,7 +318,7 @@ embedding distance correlates with tree distance at **Pearson 0.91** on held-out
 species. Two controls confirm this is genuine evolutionary signal, not a
 sequence-similarity artefact (Figure 3):
 
-- **k-mer baseline.** Raw 6-mer cosine distance on the same Eval C split recovers
+- **k-mer baseline.** Raw 6-mer cosine distance on the same held-out-species split recovers
   the tree at only 0.375 — the learned embedding is 2.4× better.
 - **Shuffled-tree negative control.** Retraining the encoder on a randomly
   permuted tree collapses true-tree recovery from 0.919 to **0.094**, exactly as
@@ -375,10 +376,11 @@ do-everything embedding — a finding, not a defeat.
 
 When a rank's references are hidden before training, the model does not
 hallucinate that rank — it collapses to zero there and recovers the next broader
-rank (Figure 8). On Eval C: hiding species drops species retrieval to 0% while
-genus/family/order remain recoverable (41.8 / 62.9 / 83.9% top-10); hiding genera
-drops species and genus to 0% while family/order persist (56.3 / 75.1%); hiding
-families leaves only order (40.9%). The pattern is identical on unseen genera.
+rank (Figure 8). For held-out species: hiding species drops species retrieval to
+0% while genus/family/order remain recoverable (41.8 / 62.9 / 83.9% top-10);
+hiding genera drops species and genus to 0% while family/order persist
+(56.3 / 75.1%); hiding families leaves only order (40.9%). The pattern is
+identical on held-out genera.
 This is direct evidence that the rank/no-call policy is grounded in available
 evidence rather than overconfident extrapolation. A fixed-class classifier cannot
 exhibit this behaviour: with no class outside its training taxa, a query from a
@@ -388,7 +390,7 @@ the failure mode our detector (§4.3) and back-off measure and prevent.
 ### 4.6 Classical and placement comparators, and the marker ceiling
 
 We retain classical methods as strong baselines, not foils: BLAST recovers family
-at 98.1% (Eval C) top-10, and we ran Fernando-*style* (Fernando et al. 2025)
+at 98.1% (held-out species) top-10, and we ran Fernando-*style* (Fernando et al. 2025)
 completeness sweeps with EPA-ng (Barbera et al. 2019) and official APPLES 2.0.11
 (Balaban et al. 2020; 30 sweeps over random and family-stratified backbones). We
 report these as matched-protocol comparators and explicitly do not claim exact

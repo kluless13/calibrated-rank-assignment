@@ -138,7 +138,7 @@ def fig_missing_reference_collapse() -> None:
     ax.set_xticklabels(list(scenarios.values()))
     ax.set_ylabel("top-10 retrieval (%)")
     ax.set_ylim(0, 100)
-    ax.set_title("Missing-reference stress test (Eval C): the hidden rank collapses to 0,\nbroader ranks stay recoverable — abstention is principled, not a failure", fontsize=10.5)
+    ax.set_title("Missing-reference stress test (held-out species): the hidden rank collapses to 0,\nbroader ranks stay recoverable — abstention is principled, not a failure", fontsize=10.5)
     ax.legend(title="recovered at", fontsize=8.5, ncol=4, loc="upper left")
     save(fig, "fig_missing_reference_collapse")
 

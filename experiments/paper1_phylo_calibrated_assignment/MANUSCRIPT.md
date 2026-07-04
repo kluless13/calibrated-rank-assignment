@@ -6,10 +6,9 @@ posterior at scale are out of scope here and appear only as the marker-ceiling
 boundary (§4.6), noted as directions for future work. Numbers are drawn from the
 tracked source tables; see [SOURCE_TABLES.md](SOURCE_TABLES.md).
 
-**Authors:** _[Author One]¹, [Author Two]², … [corresponding author ✉]_ — *to be
-completed (names, ORCIDs, order).*
-**Affiliations:** _¹[Institution]; ²[Institution] — to be completed._
-**Corresponding author:** _[name, email] — to be completed._
+**Author:** Angad Maniyambath (ORCID 0009-0000-0985-4721)
+**Affiliation:** _Independent Researcher — [city, country to confirm]._
+**Corresponding author:** Angad Maniyambath _[email to add]._
 
 ---
 
@@ -17,16 +16,15 @@ completed (names, ORCIDs, order).*
 
 DNA barcoding and environmental DNA (eDNA) are transforming biodiversity
 monitoring, but standard taxonomic assignment assumes a reasonably complete
-reference database — an assumption that fails for most of life, where the great
-majority of species remain unsequenced or undescribed. Confronted with a query
-whose true species is absent from the reference set, conventional pipelines
-assign the nearest catalogued species, producing a confident but wrong label. We
-reframe assignment as **calibrated, rank-adaptive inference under missing
-references**: the goal is the deepest taxonomic rank the evidence can defend —
-species, genus, family, or order — or an explicit *no-call*, with a measured
-false-species-call rate. We present an evidence-compiler pipeline that fuses fast
-vector retrieval, classical sequence comparison, a tree-aware learned embedding
-with open-set novelty detection, and reference-gap diagnostics into one
+reference database — an assumption that fails where most species remain
+unsequenced or undescribed. When a query's true species is absent, conventional
+pipelines assign the nearest catalogued species, producing a confident but wrong
+label. We reframe assignment as **calibrated, rank-adaptive inference under
+missing references**: the goal is the deepest taxonomic rank the evidence can
+defend — species, genus, family, or order — or an explicit *no-call*, with a
+measured false-species-call rate. We present an evidence-compiler pipeline that
+fuses fast vector retrieval, classical sequence comparison, a tree-aware learned
+embedding with open-set novelty detection, and reference-gap diagnostics into one
 calibrated decision, and converts abstentions into ranked reference-curation
 priorities. On leakage-audited fish COI splits, a conservative operating point
 reaches 95.8% coverage at 93.0% precision with **zero false species calls** on
@@ -34,13 +32,23 @@ held-out species, and **0.0% false species calls survive prospective,
 species-disjoint calibration across 30 repeats**. The tree-aware embedding
 recovers phylogenetic distance with Pearson 0.91 — confirmed against a k-mer
 baseline (0.38) and a shuffled-tree negative control (0.09) — and detects
-genus-level novelty at AUROC 0.84. We benchmark unsupervised rediscovery
-honestly: classical alignment clustering remains the gold standard at species
-level, our embedding wins at family level, and at matched cluster granularity the
-learned representation ties VSEARCH — but only by trading away the tree geometry
-that powers placement and novelty detection. The contribution is the integrated,
-calibrated, missing-reference-aware system and its honest characterisation, not a
-new embedding or a claim to beat alignment.
+genus-level novelty at AUROC 0.84. Benchmarked honestly, classical alignment
+clustering remains the gold standard at species level; our embedding wins at
+family level and, at matched granularity, ties VSEARCH — but only by trading away
+the tree geometry that powers placement and detection. The contribution is the
+integrated, calibrated, missing-reference-aware system and its honest
+characterisation, not a new embedding or a claim to beat alignment.
+
+**Keywords:** DNA barcoding; environmental DNA (eDNA); taxonomic assignment;
+open-set recognition; calibration; phylogenetic placement; biodiversity monitoring
+
+## Highlights
+
+- Reframes assignment as calibrated rank-adaptive inference, not classification
+- Zero false-species calls survive prospective, species-disjoint calibration
+- Open-set novelty detection is fused into a calibrated rank/no-call decision
+- Tree-geometry signal verified by k-mer and shuffled-tree negative controls
+- Abstentions are converted into ranked reference-curation priorities
 
 ---
 
@@ -469,12 +477,21 @@ list / archive DOI — to be completed.]_
 the project repository (`calibrated-rank-assignment`); a tagged release with a
 Zenodo DOI will accompany submission. _[Zenodo DOI — to be completed.]_
 
-**Funding.** _[Funding sources / grant numbers — to be completed.]_
+**Funding.** This research received no specific grant from any funding agency in
+the public, commercial, or not-for-profit sectors. _[Confirm at submission.]_
 
-**Author contributions.** _[CRediT roles — to be completed.]_
+**Author contributions.** Angad Maniyambath: Conceptualization, Methodology,
+Software, Validation, Formal analysis, Investigation, Data curation, Writing –
+original draft, Writing – review & editing, Visualization, Project administration.
 
-**Declaration of competing interest.** _The authors declare no competing
-interests._ _[Confirm at submission.]_
+**Declaration of competing interest.** The author declares no competing interests.
+
+**Declaration of Generative AI and AI-assisted technologies in the writing
+process.** During the preparation of this work the author used a generative-AI
+assistant to help with language readability and flow, and to help organise and
+format the manuscript. All research design, analysis, results, and scientific
+claims are the author's own; the author reviewed and edited all content and takes
+full responsibility for the content of the publication.
 
 ## 7. References
 

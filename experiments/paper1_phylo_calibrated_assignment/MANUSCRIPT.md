@@ -40,7 +40,7 @@ integrated, calibrated, missing-reference-aware system and its honest
 characterisation, not a new embedding or a claim to beat alignment.
 
 **Keywords:** DNA barcoding; environmental DNA (eDNA); taxonomic assignment;
-open-set recognition; calibration; phylogenetic placement; biodiversity monitoring
+open-set recognition; calibration; biodiversity monitoring
 
 ## Highlights
 
@@ -55,7 +55,7 @@ open-set recognition; calibration; phylogenetic placement; biodiversity monitori
 ## 1. Introduction
 
 DNA barcoding identifies organisms from a short, standardised stretch of DNA
-(Hebert et al. 2003), and environmental DNA (eDNA) extends this to detecting
+(Hebert et al., 2003), and environmental DNA (eDNA) extends this to detecting
 species from traces shed into water, soil, or air. Both rest on the same final step: comparing a query barcode
 against a **reference database** of barcodes from identified specimens. That step
 silently assumes the reference is adequately populated for the query's taxon.
@@ -100,13 +100,12 @@ This paper makes the following contributions:
 5. **Active reference-curation**: turning abstentions into a ranked list of which
    references to sequence next (§4.7).
 
-We are explicit about prior art. Learned barcode-to-tree embeddings (Stalder et
-al. 2025; DEPP, Jiang et al. 2023), the learned-vs-k-mer representation comparison
-(kf2vec, Rachtman et al. 2025), neural barcode foundation models and vector
-retrieval (BarcodeBERT, Millan Arias et al. 2026; DNABERT-S, Zhou et al. 2025;
-TaxoTagger), probabilistic rank-aware assignment (PROTAX, Somervuo et al. 2016;
-IDTAXA, Murali et al. 2018), and unsupervised sequence clustering (BIN,
-Ratnasingham & Hebert 2013; ABGD; ASAP) all exist. We use them; we do not claim
+We are explicit about prior art. Learned barcode-to-tree embeddings (Stalder et al., 2025; DEPP, Jiang et al., 2023), the learned-vs-k-mer representation comparison
+(kf2vec, Rachtman et al., 2025), neural barcode foundation models and vector
+retrieval (BarcodeBERT, Millan Arias et al., 2026; DNABERT-S, Zhou et al., 2025;
+TaxoTagger), probabilistic rank-aware assignment (PROTAX, Somervuo et al., 2016;
+IDTAXA, Murali et al., 2018), and unsupervised sequence clustering (BIN,
+Ratnasingham & Hebert, 2013; ABGD; ASAP) all exist. We use them; we do not claim
 to have invented them, and we do not claim to beat alignment-based methods at
 fine-grained clustering. Our novelty is the integration, the calibrated
 missing-reference regime, and the open-set detection axis.
@@ -121,12 +120,12 @@ distance approximates phylogenetic-tree distance is established. Stalder et al.
 (2025) embed fish 12S eDNA barcodes into a phylogenetic space on the same Fish
 Tree of Life we use, combine it with species co-occurrence for zero-shot
 annotation of unknown sequences, and report a probability-calibration analysis;
-DEPP (Jiang et al. 2023) learns to place sequences on a species tree. We adopt
+DEPP (Jiang et al., 2023) learns to place sequences on a species tree. We adopt
 this idea rather than claim it; our tree-geometry encoder is a component, and its
 distinctive use here is to power open-set detection and rank back-off, not to
 advance placement per se.
 
-**Learned vs. k-mer representations.** kf2vec (Rachtman et al. 2025) already
+**Learned vs. k-mer representations.** kf2vec (Rachtman et al., 2025) already
 established that learned barcode embeddings outperform raw k-mer frequencies for
 distance and placement. Our k-mer control (§4.2) is a confirmation of that finding
 on fish COI, not a new result.
@@ -140,10 +139,8 @@ to our knowledge, integrates open-set detection into a calibrated rank/no-call
 decision, and this is our lead model-level contribution (§4.3).
 
 **Neural clustering and species delimitation.** Unsupervised recovery of species
-from barcode embeddings exists in neural form (BarcodeBERT, Millan Arias et al.
-2026; DNABERT-S, Zhou et al. 2025) and, classically, as identity-threshold or
-gap-based delimitation (BIN, Ratnasingham & Hebert 2013; ABGD, Puillandre et al.
-2012; ASAP, Puillandre et al. 2021), which we use as strong baselines (§4.4). We
+from barcode embeddings exists in neural form (BarcodeBERT, Millan Arias et al., 2026; DNABERT-S, Zhou et al., 2025) and, classically, as identity-threshold or
+gap-based delimitation (BIN, Ratnasingham & Hebert, 2013; ABGD, Puillandre et al., 2012; ASAP, Puillandre et al., 2021), which we use as strong baselines (§4.4). We
 concede that clustering-based rediscovery is not where we win.
 
 **Closed-set neural assignment under missing references.** Closest to our
@@ -161,19 +158,18 @@ measured false-species-call rate, plus tree-geometry placement, novelty detectio
 and an active-curation loop.
 
 **Probabilistic and rank-aware assignment.** Probabilistic taxonomic classifiers
-report rank-wise confidence (PROTAX, Somervuo et al. 2016; IDTAXA, Murali et al.
-2018), and Zito et al. (2023) use Bayesian species-sampling priors to allow
+report rank-wise confidence (PROTAX, Somervuo et al., 2016; IDTAXA, Murali et al., 2018), and Zito et al. (2023) use Bayesian species-sampling priors to allow
 unobserved taxa to be discovered at each rank — conceptually the nearest prior
 work to rank-adaptive assignment with abstention. These are not deep-learning
 systems and are not integrated with tree-geometry placement, a measured
 false-species-call rate, or reference-curation; our contribution is that
 integration under an audited missing-reference regime.
 
-## 3. Methods
+## 3. Material and methods
 
 ### 3.1 The pipeline architecture
 
-The system is an **evidence compiler** (Figure 1). A query barcode passes through
+The system is an **evidence compiler** (Fig. 1). A query barcode passes through
 ordered stations, each contributing a distinct, independently measurable kind of
 evidence, before a final calibrated decision:
 
@@ -181,8 +177,7 @@ evidence, before a final calibrated decision:
    fixed-length vector; approximate nearest-neighbour search returns candidate
    references in well under a millisecond per query (§4.1), so the pipeline scales
    to large samples.
-2. **Classical sequence checks.** BLAST (Camacho et al. 2009), VSEARCH (Rognes et
-   al. 2016), and pairwise p-distance measure how close the retrieved candidates
+2. **Classical sequence checks.** BLAST (Camacho et al., 2009), VSEARCH (Rognes et al., 2016), and pairwise p-distance measure how close the retrieved candidates
    truly are — the field's trusted, precise workhorses, retained as strong
    baselines and as evidence, not discarded.
 3. **Tree-aware evidence and open-set novelty (DETECT).** The encoder is trained
@@ -232,7 +227,7 @@ cosine-annealed over 40 epochs, batch size 64, fixed seed 1206.
 
 Sequences come from a BOLD Teleostei COI pull (318,829 sequences spanning 23,663
 nominal species). Because the training target requires a position on the Fish Tree
-of Life (Rabosky et al. 2018; ~11,638 species with genetic data on the
+of Life (Rabosky et al., 2018; ~11,638 species with genetic data on the
 time-calibrated actinopterygian backbone), we restrict to species present on that
 tree, then deduplicate on exact sequence and on process ID and run a leakage audit
 that removes held-out species before training and confirms zero intersection
@@ -281,9 +276,7 @@ novelty AUROC, and adjusted mutual information (AMI) for clustering.
 
 ### 3.6 Software, versions, and reproducibility
 
-Classical comparators are BLAST+ (Camacho et al. 2009), VSEARCH 2.28 (Rognes et
-al. 2016), CD-HIT (Fu et al. 2012), and, for placement, EPA-ng (Barbera et al.
-2019) and official APPLES 2.0.11 (Balaban et al. 2020). Neural models are
+Classical comparators are BLAST+ (Camacho et al., 2009), VSEARCH 2.28 (Rognes et al., 2016), CD-HIT (Fu et al., 2012), and, for placement, EPA-ng (Barbera et al., 2019) and official APPLES 2.0.11 (Balaban et al., 2020). Neural models are
 implemented in PyTorch; the fixed random seed (1206) is used throughout, and all
 run commands, versions, and output paths are recorded in the dated ledgers under
 `configs/runs/`. Code and derived split manifests are released with the paper.
@@ -302,7 +295,7 @@ species.
 Crucially, this holds **prospectively**. Fitting per-rank thresholds on a
 calibration set of species and applying them to a *disjoint* evaluation set
 (30 repeats) yields 0.923 coverage, 0.900 assigned precision, and a
-false-species-call rate of **0.0% that survives every single repeat** (Figure 2).
+false-species-call rate of **0.0% that survives every single repeat** (Fig. 2).
 Assignments concentrate at genus, family, and order with explicit no-calls; the
 system never confidently names a species it cannot support. This prospective,
 species-disjoint result is the central claim of the paper: the safety property is
@@ -316,7 +309,7 @@ Retrieval underpinning this is fast: 0.40 ms/query for exact vector search and
 The encoder's notion of barcode similarity aligns with the fish phylogeny:
 embedding distance correlates with tree distance at **Pearson 0.91** on held-out
 species. Two controls confirm this is genuine evolutionary signal, not a
-sequence-similarity artefact (Figure 3):
+sequence-similarity artefact (Fig. 3):
 
 - **k-mer baseline.** Raw 6-mer cosine distance on the same held-out-species split recovers
   the tree at only 0.375 — the learned embedding is 2.4× better.
@@ -332,7 +325,7 @@ both rank back-off and novelty detection.
 ### 4.3 Open-set novelty detection (DETECT)
 
 The pipeline can recognise that a query comes from outside the reference rather
-than forcing it into a known slot (Figure 4). Genus-level novelty (queries from
+than forcing it into a known slot (Fig. 4). Genus-level novelty (queries from
 held-out genera) is detected at **AUROC 0.84**; a multi-feature detector trained
 across the species split reaches 0.77; species-level novelty — distinguishing a
 held-out species from its known congeners — is the hard limit at 0.68. Reliable
@@ -344,9 +337,9 @@ one cleanly novel result at the model level.
 
 We benchmark **unsupervised species rediscovery** — clustering reads from
 held-out species and asking whether clusters recover true taxa — against
-established tools (Figure 5). At cluster count fixed to the true species number
+established tools (Fig. 5). At cluster count fixed to the true species number
 (KMeans, k = 531), classical alignment clustering leads at the fine ranks:
-VSEARCH 0.915 and cd-hit (Fu et al. 2012) 0.886 species AMI versus our
+VSEARCH 0.915 and cd-hit (Fu et al., 2012) 0.886 species AMI versus our
 embedding's 0.874, while a frozen invertebrate-trained foundation model
 (BarcodeBERT) reaches only 0.492.
 **Our embedding wins at family level (0.756 vs 0.720 / 0.692)**, capturing coarse
@@ -357,11 +350,11 @@ species delimitation naturally over-segments: intraspecific variation splits a
 true species across several clusters, and the best classical results themselves
 use ~1,200 clusters for 531 true species. When our embedding is allowed to
 over-segment to a matched granularity via blind thresholding (1,229 clusters), its
-species AMI rises to **0.915 — tying VSEARCH's 0.915 (1,203 clusters)** (Figure 6).
+species AMI rises to **0.915 — tying VSEARCH's 0.915 (1,203 clusters)** (Fig. 6).
 At matched cluster granularity, the learned representation is on par with the
 classical gold standard at species clustering.
 
-The honest caveat is the frontier (§4.4 continued, Figure 7): the configuration
+The honest caveat is the frontier (§4.4 continued, Fig. 7): the configuration
 that reaches 0.915 species AMI is the species-leaning variant, whose tree recovery
 falls to ~0.59. Sweeping the loss weighting between tree-distance and
 species-contrastive objectives traces a strict Pareto frontier — keep tree
@@ -376,7 +369,7 @@ do-everything embedding — a finding, not a defeat.
 
 When a rank's references are hidden before training, the model does not
 hallucinate that rank — it collapses to zero there and recovers the next broader
-rank (Figure 8). For held-out species: hiding species drops species retrieval to
+rank (Fig. 8). For held-out species: hiding species drops species retrieval to
 0% while genus/family/order remain recoverable (41.8 / 62.9 / 83.9% top-10);
 hiding genera drops species and genus to 0% while family/order persist
 (56.3 / 75.1%); hiding families leaves only order (40.9%). The pattern is
@@ -390,9 +383,9 @@ the failure mode our detector (§4.3) and back-off measure and prevent.
 ### 4.6 Classical and placement comparators, and the marker ceiling
 
 We retain classical methods as strong baselines, not foils: BLAST recovers family
-at 98.1% (held-out species) top-10, and we ran Fernando-*style* (Fernando et al. 2025)
-completeness sweeps with EPA-ng (Barbera et al. 2019) and official APPLES 2.0.11
-(Balaban et al. 2020; 30 sweeps over random and family-stratified backbones). We
+at 98.1% (held-out species) top-10, and we ran Fernando-*style* (Fernando et al., 2025)
+completeness sweeps with EPA-ng (Barbera et al., 2019) and official APPLES 2.0.11
+(Balaban et al., 2020; 30 sweeps over random and family-stratified backbones). We
 report these as matched-protocol comparators and explicitly do not claim exact
 reproduction of any prior placement-completeness protocol.
 
@@ -424,7 +417,7 @@ The prospective, species-disjoint 0% false-species result is what makes this
 deployable rather than merely aspirational.
 
 **Conceded priorities.** We build on, and do not claim to have invented: learned
-barcode-to-tree embeddings (Stalder et al. 2025, on the same fish tree; DEPP and
+barcode-to-tree embeddings (Stalder et al., 2025, on the same fish tree; DEPP and
 its descendants), the learned-vs-k-mer representation comparison (kf2vec), neural
 barcode foundation models and vector retrieval (BarcodeBERT, DNABERT-S,
 TaxoTagger), probabilistic rank-aware assignment (PROTAX, IDTAXA), and
@@ -444,21 +437,37 @@ system is a research pipeline, not a deployed service.
 thresholds into formal coverage guarantees; cross-marker bridging and a learned
 eco-phylogenetic posterior would extend the approach to multi-marker eDNA.
 
-## 6. Figures
+## 6. Conclusions
 
-- **Figure 1** — `fig_pipeline_architecture` — the evidence-compiler pipeline (§3.1).
-- **Figure 2** — `fig4_prospective_calibration` — species-disjoint operating
+Biodiversity inference from short DNA barcodes is safest when framed as
+calibrated, rank-adaptive inference under missing references rather than forced
+species classification. The pipeline presented here returns the deepest
+defensible taxonomic rank — or an explicit no-call — with a measured
+false-species-call rate that reaches 0.0% under prospective, species-disjoint
+calibration; it recognises open-set novelty and converts abstentions into ranked
+reference-curation priorities. Its contribution is the integration and the
+calibrated missing-reference regime, not a new embedding or a claim to beat
+alignment: at fine-grained clustering, classical tools remain the gold standard,
+and where the learned representation matches them it trades away the tree geometry
+that powers placement and detection. Bounded honestly in this way, the approach
+offers a deployable path to trustworthy biodiversity calls under the incomplete
+references that characterise most of life.
+
+## Figures
+
+- **Fig. 1** — `fig_pipeline_architecture` — the evidence-compiler pipeline (§3.1).
+- **Fig. 2** — `fig4_prospective_calibration` — species-disjoint operating
   point; 0% false species across 30 repeats (§4.1).
-- **Figure 3** — `fig1_place_audit_controls` — tree recovery vs k-mer baseline and
+- **Fig. 3** — `fig1_place_audit_controls` — tree recovery vs k-mer baseline and
   shuffled-tree control (§4.2).
-- **Figure 4** — `fig_detect_novelty` — open-set novelty AUROC by rank (§4.3).
-- **Figure 5** — `fig2_rediscovery_headtohead` — classical vs neural species
+- **Fig. 4** — `fig_detect_novelty` — open-set novelty AUROC by rank (§4.3).
+- **Fig. 5** — `fig2_rediscovery_headtohead` — classical vs neural species
   rediscovery (§4.4).
-- **Figure 6** — `fig_rediscovery_granularity` — species AMI vs cluster
+- **Fig. 6** — `fig_rediscovery_granularity` — species AMI vs cluster
   granularity; embedding ties VSEARCH at matched ~1.2k clusters (§4.4).
-- **Figure 7** — `fig3_tree_species_frontier` — the tree-vs-species Pareto
+- **Fig. 7** — `fig3_tree_species_frontier` — the tree-vs-species Pareto
   frontier (§4.4).
-- **Figure 8** — `fig_missing_reference_collapse` — rank collapse under hidden
+- **Fig. 8** — `fig_missing_reference_collapse` — rank collapse under hidden
   references (§4.5).
 
 All figures are in `manuscript_assets/experiment1/figures/` (PNG + PDF) and are
@@ -467,35 +476,15 @@ regenerated by `scripts/figures/plot_experiment1_figures.py` and
 
 ## Declarations
 
-**Data availability.** Sequence data derive from public BOLD Teleostei COI records
-and the Fish Tree of Life (Rabosky et al. 2018; https://doi.org/10.1038/s41586-018-0273-1).
-The derived, leakage-audited split manifests (with per-record BOLD/process IDs) and
-all source tables underlying the reported figures are released with the code
-repository; raw accession lists will be deposited on acceptance. _[BOLD accession
-list / archive DOI — to be completed.]_
+**CRediT authorship contribution statement.** Angad Maniyambath: Conceptualization, Methodology, Software, Validation, Formal analysis, Investigation, Data curation, Writing – original draft, Writing – review & editing, Visualization, Project administration.
 
-**Code availability.** All analysis code, run ledgers, and figure scripts are in
-the project repository (`calibrated-rank-assignment`); a tagged release with a
-Zenodo DOI will accompany submission. _[Zenodo DOI — to be completed.]_
-
-**Funding.** This research received no specific grant from any funding agency in
-the public, commercial, or not-for-profit sectors. _[Confirm at submission.]_
-
-**Author contributions.** Angad Maniyambath: Conceptualization, Methodology,
-Software, Validation, Formal analysis, Investigation, Data curation, Writing –
-original draft, Writing – review & editing, Visualization, Project administration.
+**Funding.** This research received no specific grant from any funding agency in the public, commercial, or not-for-profit sectors.
 
 **Declaration of competing interest.** The author declares no competing interests.
 
-**Declaration of generative AI and AI-assisted technologies in the manuscript
-preparation process.** During the preparation of this work the author used Claude
-(Anthropic) in order to assist with drafting, language and readability, and the
-organisation and formatting of the manuscript, and to help compile and format the
-reference list. After using this tool, the author reviewed and edited the content
-as needed — including independently verifying every cited source against the
-primary literature — and takes full responsibility for the content of the
-published article. All research design, data, analysis, results, interpretation,
-and scientific claims are the author's own original work.
+**Declaration of generative AI and AI-assisted technologies in the manuscript preparation process.** During the preparation of this work the author used Claude (Anthropic) in order to assist with drafting, language and readability, and the organisation and formatting of the manuscript, and to help compile and format the reference list. After using this tool, the author reviewed and edited the content as needed — including independently verifying every cited source against the primary literature — and takes full responsibility for the content of the published article. All research design, data, analysis, results, interpretation, and scientific claims are the author's own original work.
+
+**Data availability.** Sequence data derive from public BOLD Teleostei COI records and the Fish Tree of Life (Rabosky et al., 2018; https://doi.org/10.1038/s41586-018-0273-1). The derived, leakage-audited split manifests (with per-record BOLD/process IDs), all analysis code, run ledgers, figure scripts, and the source tables underlying the reported figures are released in the project repository (calibrated-rank-assignment); a tagged release with a Zenodo DOI will accompany submission, and raw accession lists will be deposited on acceptance. _[BOLD accession list / Zenodo DOI — to be completed.]_
 
 ## 7. References
 

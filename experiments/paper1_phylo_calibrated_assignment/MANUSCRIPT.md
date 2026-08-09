@@ -3,7 +3,7 @@
 **Working draft.** Target venue: *Ecological Informatics* (Elsevier). This is the
 full COI pipeline paper; 12S cross-marker bridging and a learned eco-phylogenetic
 posterior at scale are out of scope here and appear only as the marker-ceiling
-boundary (§4.6), noted as directions for future work. Numbers are drawn from the
+boundary (Section 4.6), noted as directions for future work. Numbers are drawn from the
 tracked source tables; see [SOURCE_TABLES.md](SOURCE_TABLES.md).
 
 **Author:** Angad Maniyambath (ORCID 0009-0000-0985-4721)
@@ -81,24 +81,24 @@ The value of reliable higher-rank assignment under incomplete references is
 increasingly recognised — Villon et al. (2026) show a neural classifier
 outperforming reference-based tools at genus and family when the query species is
 absent — but existing approaches remain closed-set and uncalibrated; we treat the
-problem as calibrated, open-set inference (positioned fully in §2).
+problem as calibrated, open-set inference (positioned fully in Section 2).
 
 This paper makes the following contributions:
 
 1. **A reframing and an end-to-end pipeline** that returns calibrated
    species/genus/family/order/no-call decisions by fusing multiple, separately
-   measured streams of evidence (§3.1).
+   measured streams of evidence (Section 3.1).
 2. **A missing-reference evaluation regime** — leakage-audited splits plus
    strict stress tests that hide species, genera, or families before training —
-   that makes abstention testable (§3.5, §4.5).
+   that makes abstention testable (Sections 3.5 and 4.5).
 3. **A conservative operating point with a measured 0% false-species-call rate**,
-   shown to hold under *prospective, species-disjoint* calibration (§4.1).
+   shown to hold under *prospective, species-disjoint* calibration (Section 4.1).
 4. **An honest characterisation of the learned representation**: it genuinely
-   encodes phylogeny (verified with negative controls; §4.2), detects open-set
-   novelty (§4.3), and sits on a measurable tree-vs-species Pareto frontier where
-   matching classical species clustering costs the tree geometry (§4.4).
+   encodes phylogeny (verified with negative controls; Section 4.2), detects open-set
+   novelty (Section 4.3), and sits on a measurable tree-vs-species Pareto frontier where
+   matching classical species clustering costs the tree geometry (Section 4.4).
 5. **Active reference-curation**: turning abstentions into a ranked list of which
-   references to sequence next (§4.7).
+   references to sequence next (Section 4.7).
 
 We are explicit about prior art. Learned barcode-to-tree embeddings (Stalder et al., 2025; DEPP, Jiang et al., 2023), the learned-vs-k-mer representation comparison
 (kf2vec, Rachtman et al., 2025), neural barcode foundation models and vector
@@ -127,20 +127,20 @@ advance placement per se.
 
 **Learned vs. k-mer representations.** kf2vec (Rachtman et al., 2025) already
 established that learned barcode embeddings outperform raw k-mer frequencies for
-distance and placement. Our k-mer control (§4.2) is a confirmation of that finding
+distance and placement. Our k-mer control (Section 4.2) is a confirmation of that finding
 on fish COI, not a new result.
 
 **Open-set novelty detection.** Recognising that a query lies *outside* the
 reference — rather than forcing it into the nearest known class — is the relatively
 open axis. Fujisawa & Imai (2026) benchmark out-of-distribution detectors for
 insect COI barcoding and show that detection degrades sharply on short fragments,
-a caveat we inherit at the 12S marker ceiling (§4.6). No prior barcode method,
+a caveat we inherit at the 12S marker ceiling (Section 4.6). No prior barcode method,
 to our knowledge, integrates open-set detection into a calibrated rank/no-call
-decision, and this is our lead model-level contribution (§4.3).
+decision, and this is our lead model-level contribution (Section 4.3).
 
 **Neural clustering and species delimitation.** Unsupervised recovery of species
 from barcode embeddings exists in neural form (BarcodeBERT, Millan Arias et al., 2026; DNABERT-S, Zhou et al., 2025) and, classically, as identity-threshold or
-gap-based delimitation (BIN, Ratnasingham & Hebert, 2013; ABGD, Puillandre et al., 2012; ASAP, Puillandre et al., 2021), which we use as strong baselines (§4.4). We
+gap-based delimitation (BIN, Ratnasingham & Hebert, 2013; ABGD, Puillandre et al., 2012; ASAP, Puillandre et al., 2021), which we use as strong baselines (Section 4.4). We
 concede that clustering-based rediscovery is not where we win.
 
 **Closed-set neural assignment under missing references.** Closest to our
@@ -152,7 +152,7 @@ abstain, cannot recognise a taxon outside its training classes, and reports no
 calibrated error rate — indeed, because every test taxon's genus and family are
 still training classes, a query from a genuinely unseen family is forced into a
 known class with a confident softmax score, which is exactly the failure mode we
-measure and prevent (§4.3, §4.5). We reframe the same problem as calibrated,
+measure and prevent (Sections 4.3 and 4.5). We reframe the same problem as calibrated,
 open-set inference: the deepest defensible rank or an explicit no-call with a
 measured false-species-call rate, plus tree-geometry placement, novelty detection,
 and an active-curation loop.
@@ -175,7 +175,7 @@ evidence, before a final calibrated decision:
 
 1. **Fast vector candidate retrieval.** A learned encoder maps the barcode to a
    fixed-length vector; approximate nearest-neighbour search returns candidate
-   references in well under a millisecond per query (§4.1), so the pipeline scales
+   references in well under a millisecond per query (Section 4.1), so the pipeline scales
    to large samples.
 2. **Classical sequence checks.** BLAST (Camacho et al., 2009), VSEARCH (Rognes et al., 2016), and pairwise p-distance measure how close the retrieved candidates
    truly are — the field's trusted, precise workhorses, retained as strong
@@ -219,7 +219,7 @@ map a sequence to its species' tree vector under a composite objective,
 where L_cosine = 1 − cos(prediction, tree target) is the tree-distance regression
 term and L_contrastive is an InfoNCE loss (temperature 0.07) over candidate
 reference species. Sweeping the weight ratio w_tree : w_species traces the
-tree-vs-species Pareto frontier reported in §4.4; the tree-only anchor sets
+tree-vs-species Pareto frontier reported in Section 4.4; the tree-only anchor sets
 w_species = 0. Training uses AdamW (learning rate 5×10⁻⁴, weight decay 0.01),
 cosine-annealed over 40 epochs, batch size 64, fixed seed 1206.
 
@@ -248,7 +248,7 @@ modelled set.)*
 **Missing-reference stress tests.** Beyond holding species out, we additionally
 *prune the candidate set* before training: separate runs hide all species, all
 genera, or all families of the query, forcing the model to operate when a given
-rank is entirely unsupported (§4.5).
+rank is entirely unsupported (Section 4.5).
 
 ### 3.4 Open-set novelty detector (DETECT)
 
@@ -259,14 +259,14 @@ retained in the top-k (`ref_top1`, `ref_margin`, `ref_genus_consensus`,
 `ref_topk_mean`, `ref_n_ref_in_topk`). We report both single-feature AUROC
 (reference-only) and a multi-feature logistic detector trained and evaluated on
 disjoint calibration and evaluation species so that reported detection reflects
-transfer to unseen taxa (§4.3).
+transfer to unseen taxa (Section 4.3).
 
 ### 3.5 Calibration and evaluation protocol
 
 **Prospective calibration.** Per-rank decision thresholds are fit at a target
 assigned-precision of 0.99 on one set of species and applied to a *disjoint* set
 never used to set them, repeated 30 times, so reported operating points reflect
-transfer to genuinely unseen taxa rather than in-sample tuning (§4.1).
+transfer to genuinely unseen taxa rather than in-sample tuning (Section 4.1).
 
 **Metrics.** Coverage (fraction of queries assigned rather than no-called),
 assigned precision (fraction of assignments correct at their rank),
@@ -354,7 +354,7 @@ species AMI rises to **0.915 — tying VSEARCH's 0.915 (1,203 clusters)** (Fig. 
 At matched cluster granularity, the learned representation is on par with the
 classical gold standard at species clustering.
 
-The honest caveat is the frontier (§4.4 continued, Fig. 7): the configuration
+The honest caveat is the frontier (Section 4.4 continued, Fig. 7): the configuration
 that reaches 0.915 species AMI is the species-leaning variant, whose tree recovery
 falls to ~0.59. Sweeping the loss weighting between tree-distance and
 species-contrastive objectives traces a strict Pareto frontier — keep tree
@@ -378,7 +378,7 @@ This is direct evidence that the rank/no-call policy is grounded in available
 evidence rather than overconfident extrapolation. A fixed-class classifier cannot
 exhibit this behaviour: with no class outside its training taxa, a query from a
 hidden family is necessarily forced into a known family with a confident score —
-the failure mode our detector (§4.3) and back-off measure and prevent.
+the failure mode our detector (Section 4.3) and back-off measure and prevent.
 
 ### 4.6 Classical and placement comparators, and the marker ceiling
 
@@ -455,20 +455,20 @@ references that characterise most of life.
 
 ## Figures
 
-- **Fig. 1** — `fig_pipeline_architecture` — the evidence-compiler pipeline (§3.1).
+- **Fig. 1** — `fig_pipeline_architecture` — the evidence-compiler pipeline (Section 3.1).
 - **Fig. 2** — `fig4_prospective_calibration` — species-disjoint operating
-  point; 0% false species across 30 repeats (§4.1).
+  point; 0% false species across 30 repeats (Section 4.1).
 - **Fig. 3** — `fig1_place_audit_controls` — tree recovery vs k-mer baseline and
-  shuffled-tree control (§4.2).
-- **Fig. 4** — `fig_detect_novelty` — open-set novelty AUROC by rank (§4.3).
+  shuffled-tree control (Section 4.2).
+- **Fig. 4** — `fig_detect_novelty` — open-set novelty AUROC by rank (Section 4.3).
 - **Fig. 5** — `fig2_rediscovery_headtohead` — classical vs neural species
-  rediscovery (§4.4).
+  rediscovery (Section 4.4).
 - **Fig. 6** — `fig_rediscovery_granularity` — species AMI vs cluster
-  granularity; embedding ties VSEARCH at matched ~1.2k clusters (§4.4).
+  granularity; embedding ties VSEARCH at matched ~1.2k clusters (Section 4.4).
 - **Fig. 7** — `fig3_tree_species_frontier` — the tree-vs-species Pareto
-  frontier (§4.4).
+  frontier (Section 4.4).
 - **Fig. 8** — `fig_missing_reference_collapse` — rank collapse under hidden
-  references (§4.5).
+  references (Section 4.5).
 
 All figures are in `manuscript_assets/experiment1/figures/` (PNG + PDF) and are
 regenerated by `scripts/figures/plot_experiment1_figures.py` and

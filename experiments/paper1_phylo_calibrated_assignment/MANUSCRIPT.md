@@ -7,7 +7,7 @@ boundary (Section 4.6), noted as directions for future work. Numbers are drawn f
 tracked source tables; see [SOURCE_TABLES.md](SOURCE_TABLES.md).
 
 **Author:** Angad Maniyambath (ORCID 0009-0000-0985-4721)
-**Affiliation:** _Independent Researcher — [city, country to confirm]._
+**Affiliation:** _Independent Researcher, [city, country to confirm]._
 **Corresponding author:** Angad Maniyambath _[email to add]._
 
 ---
@@ -16,12 +16,11 @@ tracked source tables; see [SOURCE_TABLES.md](SOURCE_TABLES.md).
 
 DNA barcoding and environmental DNA (eDNA) are transforming biodiversity
 monitoring, but standard taxonomic assignment assumes a reasonably complete
-reference database — an assumption that fails where most species remain
+reference database, an assumption that fails where most species remain
 unsequenced or undescribed. When a query's true species is absent, conventional
 pipelines assign the nearest catalogued species, producing a confident but wrong
 label. We reframe assignment as calibrated, rank-adaptive inference under
-missing references: the goal is the deepest taxonomic rank the evidence can
-defend — species, genus, family, or order — or an explicit *no-call*, with a
+missing references: the goal is the deepest taxonomic rank the evidence can defend (species, genus, family, or order) or an explicit *no-call*, with a
 measured false-species-call rate. We present an evidence-compiler pipeline that
 fuses fast vector retrieval, classical sequence comparison, a tree-aware learned
 embedding with open-set novelty detection, and reference-gap diagnostics into one
@@ -30,11 +29,10 @@ priorities. On leakage-audited fish COI splits, a conservative operating point
 reaches 95.8% coverage at 93.0% precision with zero false species calls on
 held-out species, and 0.0% false species calls survive prospective,
 species-disjoint calibration across 30 repeats. The tree-aware embedding
-recovers phylogenetic distance with Pearson 0.91 — confirmed against a k-mer
-baseline (0.38) and a shuffled-tree negative control (0.09) — and detects
+recovers phylogenetic distance with Pearson 0.91, confirmed against a k-mer baseline (0.38) and a shuffled-tree negative control (0.09), and detects
 genus-level novelty at AUROC 0.84. Benchmarked honestly, classical alignment
 clustering remains the gold standard at species level; our embedding wins at
-family level and, at matched granularity, ties VSEARCH — but only by trading away
+family level and, at matched granularity, ties VSEARCH, but only by trading away
 the tree geometry that powers placement and detection. The contribution is the
 integrated, calibrated, missing-reference-aware system and its honest
 characterisation, not a new embedding or a claim to beat alignment.
@@ -63,7 +61,7 @@ silently assumes the reference is adequately populated for the query's taxon.
 For most biodiversity this assumption is false. The overwhelming majority of
 species on Earth are undescribed or unsequenced, and eDNA disproportionately
 samples under-referenced taxa. When the true species is absent from the
-reference, a forced top-1 assignment is not merely uncertain — it is a confident
+reference, a forced top-1 assignment is not merely uncertain: it is a confident
 wrong answer, and such answers propagate into biodiversity inventories,
 conservation status assessments, and management decisions. The failure is
 systemic and under-acknowledged: the tooling is optimised for the case where the
@@ -71,26 +69,20 @@ answer is in the database.
 
 We argue that assignment under incomplete references is not a classification
 problem but an inference problem under missing information. The scientifically
-correct output is the deepest taxonomic rank the available evidence can defend —
-and an honest *no-call* when even the coarsest rank is unsupported — accompanied
+correct output is the deepest taxonomic rank the available evidence can defend (and an honest *no-call* when even the coarsest rank is unsupported), accompanied
 by a calibrated, *measured* error rate. A doctor who cannot identify the precise
 pathogen names the most specific category the evidence supports rather than
 inventing a strain; biodiversity assignment should do the same.
 
 The value of reliable higher-rank assignment under incomplete references is
-increasingly recognised — Villon et al. (2026) show a neural classifier
-outperforming reference-based tools at genus and family when the query species is
-absent — but existing approaches remain closed-set and uncalibrated; we treat the
-problem as calibrated, open-set inference (positioned fully in Section 2).
+increasingly recognised; Villon et al. (2026), for example, show a neural classifier outperforming reference-based tools at genus and family when the query species is absent. But existing approaches remain closed-set and uncalibrated, and we treat the problem as calibrated, open-set inference (positioned fully in Section 2).
 
 This paper makes the following contributions:
 
 1. A reframing and an end-to-end pipeline that returns calibrated
    species/genus/family/order/no-call decisions by fusing multiple, separately
    measured streams of evidence (Section 3.1).
-2. A missing-reference evaluation regime — leakage-audited splits plus
-   strict stress tests that hide species, genera, or families before training —
-   that makes abstention testable (Sections 3.5 and 4.5).
+2. A missing-reference evaluation regime (leakage-audited splits plus strict stress tests that hide species, genera, or families before training) that makes abstention testable (Sections 3.5 and 4.5).
 3. A conservative operating point with a measured 0% false-species-call rate,
    shown to hold under *prospective, species-disjoint* calibration (Section 4.1).
 4. An honest characterisation of the learned representation: it genuinely
@@ -130,8 +122,7 @@ established that learned barcode embeddings outperform raw k-mer frequencies for
 distance and placement. Our k-mer control (Section 4.2) is a confirmation of that finding
 on fish COI, not a new result.
 
-**Open-set novelty detection.** Recognising that a query lies *outside* the
-reference — rather than forcing it into the nearest known class — is the relatively
+**Open-set novelty detection.** Recognising that a query lies *outside* the reference, rather than forcing it into the nearest known class, is the relatively
 open axis. Fujisawa & Imai (2026) benchmark out-of-distribution detectors for
 insect COI barcoding and show that detection degrades sharply on short fragments,
 a caveat we inherit at the 12S marker ceiling (Section 4.6). No prior barcode method,
@@ -148,8 +139,7 @@ concede that clustering-based rediscovery is not where we win.
 softmax classifier outperforms reference-based tools (Kraken2, OBITools, Lolo) at
 genus- and family-level assignment when the query species is absent from training.
 But their classifier is trained on a fixed set of families and genera: it cannot
-abstain, cannot recognise a taxon outside its training classes, and reports no
-calibrated error rate — indeed, because every test taxon's genus and family are
+abstain, cannot recognise a taxon outside its training classes, and reports no calibrated error rate. Indeed, because every test taxon's genus and family are
 still training classes, a query from a genuinely unseen family is forced into a
 known class with a confident softmax score, which is exactly the failure mode we
 measure and prevent (Sections 4.3 and 4.5). We reframe the same problem as calibrated,
@@ -159,7 +149,7 @@ and an active-curation loop.
 
 **Probabilistic and rank-aware assignment.** Probabilistic taxonomic classifiers
 report rank-wise confidence (PROTAX, Somervuo et al., 2016; IDTAXA, Murali et al., 2018), and Zito et al. (2023) use Bayesian species-sampling priors to allow
-unobserved taxa to be discovered at each rank — conceptually the nearest prior
+unobserved taxa to be discovered at each rank, conceptually the nearest prior
 work to rank-adaptive assignment with abstention. These are not deep-learning
 systems and are not integrated with tree-geometry placement, a measured
 false-species-call rate, or reference-curation; our contribution is that
@@ -177,8 +167,7 @@ evidence, before a final calibrated decision:
    fixed-length vector; approximate nearest-neighbour search returns candidate
    references in well under a millisecond per query (Section 4.1), so the pipeline scales
    to large samples.
-2. **Classical sequence checks.** BLAST (Camacho et al., 2009), VSEARCH (Rognes et al., 2016), and pairwise p-distance measure how close the retrieved candidates
-   truly are — the field's trusted, precise workhorses, retained as strong
+2. **Classical sequence checks.** BLAST (Camacho et al., 2009), VSEARCH (Rognes et al., 2016), and pairwise p-distance measure how close the retrieved candidates truly are. They are the field's trusted, precise workhorses, retained as strong
    baselines and as evidence, not discarded.
 3. **Tree-aware evidence and open-set novelty (DETECT).** The encoder is trained
    so that embedding distance approximates phylogenetic distance; a query is
@@ -235,13 +224,12 @@ between reference and evaluation sets. The resulting modelled set is partitioned
 into a reference library of 3,839 species (the searchable set) and two
 held-out regimes of increasing difficulty:
 
-- Held-out species — 531 species held out entirely (11,594 reads), with their
+- Held-out species: 531 species held out entirely (11,594 reads), with their
   genera still represented (species-level novelty within known genera).
-- Held-out genera — 614 species whose genera are held out (9,148 reads;
+- Held-out genera: 614 species whose genera are held out (9,148 reads;
   genus-level novelty).
 
-*(This single lineage — raw BOLD pull → Fish-Tree-mapped subset → dedup and
-leakage audit → the three splits — is the authoritative dataset description; the
+*(This single lineage, raw BOLD pull → Fish-Tree-mapped subset → dedup and leakage audit → the three splits, is the authoritative dataset description; the
 earlier "318K sequences / 23,663 species" figure refers to the raw pull, not the
 modelled set.)*
 
@@ -287,9 +275,7 @@ run commands, versions, and output paths are recorded in the dated ledgers under
 
 At a conservative target precision (0.99) with p-distance reranking, the pipeline
 reaches 95.8% coverage at 93.0% assigned precision on held-out species, and
-92.3% / 83.9% on held-out genera, with a false-species-call rate of 0.0% in
-both — under
-missing references it backs off to a correct broader rank rather than inventing a
+92.3% / 83.9% on held-out genera, with a false-species-call rate of 0.0% in both. Under missing references, it backs off to a correct broader rank rather than inventing a
 species.
 
 Crucially, this holds prospectively. Fitting per-rank thresholds on a
@@ -312,14 +298,13 @@ species. Two controls confirm this is genuine evolutionary signal, not a
 sequence-similarity artefact (Fig. 3):
 
 - **k-mer baseline.** Raw 6-mer cosine distance on the same held-out-species split recovers
-  the tree at only 0.375 — the learned embedding is 2.4× better.
+  the tree at only 0.375; the learned embedding is 2.4× better.
 - **Shuffled-tree negative control.** Retraining the encoder on a randomly
   permuted tree collapses true-tree recovery from 0.919 to 0.094, exactly as
   expected if the 0.91 reflects real structure the model learned from correct
   targets.
 
-This phylogenetic geometry is what lets the system place queries — including
-those whose species is absent — near their true relatives, and is the basis for
+This phylogenetic geometry is what lets the system place queries, including those whose species is absent, near their true relatives, and is the basis for
 both rank back-off and novelty detection.
 
 ### 4.3 Open-set novelty detection (DETECT)
@@ -327,17 +312,14 @@ both rank back-off and novelty detection.
 The pipeline can recognise that a query comes from outside the reference rather
 than forcing it into a known slot (Fig. 4). Genus-level novelty (queries from
 held-out genera) is detected at AUROC 0.84; a multi-feature detector trained
-across the species split reaches 0.77; species-level novelty — distinguishing a
-held-out species from its known congeners — is the hard limit at 0.68. Reliable
+across the species split reaches 0.77; species-level novelty, distinguishing a held-out species from its known congeners, is the hard limit at 0.68. Reliable
 detection of higher-rank novelty is the capability that makes principled
 abstention, and ultimately honest discovery, possible. This open-set axis is the
 one cleanly novel result at the model level.
 
 ### 4.4 Where learned representations sit: an honest rediscovery benchmark
 
-We benchmark unsupervised species rediscovery — clustering reads from
-held-out species and asking whether clusters recover true taxa — against
-established tools (Fig. 5). At cluster count fixed to the true species number
+We benchmark unsupervised species rediscovery, clustering reads from held-out species and asking whether clusters recover true taxa, against established tools (Fig. 5). At cluster count fixed to the true species number
 (KMeans, k = 531), classical alignment clustering leads at the fine ranks:
 VSEARCH 0.915 and cd-hit (Fu et al., 2012) 0.886 species AMI versus our
 embedding's 0.874, while a frozen invertebrate-trained foundation model
@@ -350,25 +332,24 @@ species delimitation naturally over-segments: intraspecific variation splits a
 true species across several clusters, and the best classical results themselves
 use ~1,200 clusters for 531 true species. When our embedding is allowed to
 over-segment to a matched granularity via blind thresholding (1,229 clusters), its
-species AMI rises to 0.915 — tying VSEARCH's 0.915 (1,203 clusters) (Fig. 6).
+species AMI rises to 0.915, tying VSEARCH's 0.915 (1,203 clusters) (Fig. 6).
 At matched cluster granularity, the learned representation is on par with the
 classical gold standard at species clustering.
 
 The honest caveat is the frontier (Section 4.4 continued, Fig. 7): the configuration
 that reaches 0.915 species AMI is the species-leaning variant, whose tree recovery
 falls to ~0.59. Sweeping the loss weighting between tree-distance and
-species-contrastive objectives traces a strict Pareto frontier — keep tree
-recovery ≥ 0.85 and species clustering caps near 0.86; match VSEARCH at species
+species-contrastive objectives traces a strict Pareto frontier: keep tree recovery ≥ 0.85 and species clustering caps near 0.86; match VSEARCH at species
 and tree recovery collapses to ≤ 0.66. **No single weighting holds both.** A
 representation that matches alignment at species clustering is effectively a
 species-contrastive model that has discarded the tree geometry on which placement
 and novelty detection depend. The model component is therefore a frontier, not a
-do-everything embedding — a finding, not a defeat.
+do-everything embedding. This is a finding, not a shortcoming.
 
 ### 4.5 Missing-reference stress: abstention is principled
 
 When a rank's references are hidden before training, the model does not
-hallucinate that rank — it collapses to zero there and recovers the next broader
+hallucinate that rank: it collapses to zero there and recovers the next broader
 rank (Fig. 8). For held-out species: hiding species drops species retrieval to
 0% while genus/family/order remain recoverable (41.8 / 62.9 / 83.9% top-10);
 hiding genera drops species and genus to 0% while family/order persist
@@ -377,8 +358,7 @@ identical on held-out genera.
 This is direct evidence that the rank/no-call policy is grounded in available
 evidence rather than overconfident extrapolation. A fixed-class classifier cannot
 exhibit this behaviour: with no class outside its training taxa, a query from a
-hidden family is necessarily forced into a known family with a confident score —
-the failure mode our detector (Section 4.3) and back-off measure and prevent.
+hidden family is necessarily forced into a known family with a confident score, the failure mode our detector (Section 4.3) and back-off measure and prevent.
 
 ### 4.6 Classical and placement comparators, and the marker ceiling
 
@@ -391,12 +371,11 @@ reproduction of any prior placement-completeness protocol.
 
 The marker ceiling motivates the whole rank-adaptive stance. For the shorter
 12S region used in much fish eDNA, species-level resolution is frequently
-impossible regardless of method — the marker simply does not carry the
+impossible regardless of method: the marker simply does not carry the
 information. We therefore treat 12S/eDNA as a boundary: genus and family are
 reachable, species is marker-limited, and forcing species there would be
 precisely the error this paper is designed to avoid. Cross-marker bridging that
-could partially address this — mapping a short marker into the representation of a
-more informative one — is a natural direction for future work.
+could partially address this, mapping a short marker into the representation of a more informative one, is a natural direction for future work.
 
 ### 4.7 Active reference-curation
 
@@ -404,7 +383,7 @@ Because abstentions are informative, the pipeline ranks them: each no-call carri
 a reason code (species absent from reference, marker-limited, retrieval-weak) and
 a recommended next action, producing a prioritised list of references whose
 addition would resolve the most queries. This converts "I don't know" from a dead
-end into a directed sequencing agenda — the value-of-information layer that makes
+end into a directed sequencing agenda, the value-of-information layer that makes
 the honest system also a useful one.
 
 ## 5. Discussion
@@ -422,7 +401,7 @@ its descendants), the learned-vs-k-mer representation comparison (kf2vec), neura
 barcode foundation models and vector retrieval (BarcodeBERT, DNABERT-S,
 TaxoTagger), probabilistic rank-aware assignment (PROTAX, IDTAXA), and
 unsupervised species delimitation (BIN, ABGD, ASAP, and neural clustering). We also do not claim to
-beat BLAST or VSEARCH — at species clustering they remain the gold standard, and
+beat BLAST or VSEARCH: at species clustering they remain the gold standard, and
 where we match them we do so only by sacrificing the tree geometry. The
 contribution is the integration, the calibrated missing-reference regime, the
 open-set detection axis, and the active-curation layer.
@@ -442,7 +421,7 @@ eco-phylogenetic posterior would extend the approach to multi-marker eDNA.
 Biodiversity inference from short DNA barcodes is safest when framed as
 calibrated, rank-adaptive inference under missing references rather than forced
 species classification. The pipeline presented here returns the deepest
-defensible taxonomic rank — or an explicit no-call — with a measured
+defensible taxonomic rank, or an explicit no-call, with a measured
 false-species-call rate that reaches 0.0% under prospective, species-disjoint
 calibration; it recognises open-set novelty and converts abstentions into ranked
 reference-curation priorities. Its contribution is the integration and the
@@ -455,19 +434,19 @@ references that characterise most of life.
 
 ## Figures
 
-- Fig. 1 — `fig_pipeline_architecture` — the evidence-compiler pipeline (Section 3.1).
-- Fig. 2 — `fig4_prospective_calibration` — species-disjoint operating
+- Fig. 1 (`fig_pipeline_architecture`): the evidence-compiler pipeline (Section 3.1).
+- Fig. 2 (`fig4_prospective_calibration`): species-disjoint operating
   point; 0% false species across 30 repeats (Section 4.1).
-- Fig. 3 — `fig1_place_audit_controls` — tree recovery vs k-mer baseline and
+- Fig. 3 (`fig1_place_audit_controls`): tree recovery vs k-mer baseline and
   shuffled-tree control (Section 4.2).
-- Fig. 4 — `fig_detect_novelty` — open-set novelty AUROC by rank (Section 4.3).
-- Fig. 5 — `fig2_rediscovery_headtohead` — classical vs neural species
+- Fig. 4 (`fig_detect_novelty`): open-set novelty AUROC by rank (Section 4.3).
+- Fig. 5 (`fig2_rediscovery_headtohead`): classical vs neural species
   rediscovery (Section 4.4).
-- Fig. 6 — `fig_rediscovery_granularity` — species AMI vs cluster
+- Fig. 6 (`fig_rediscovery_granularity`): species AMI vs cluster
   granularity; embedding ties VSEARCH at matched ~1.2k clusters (Section 4.4).
-- Fig. 7 — `fig3_tree_species_frontier` — the tree-vs-species Pareto
+- Fig. 7 (`fig3_tree_species_frontier`): the tree-vs-species Pareto
   frontier (Section 4.4).
-- Fig. 8 — `fig_missing_reference_collapse` — rank collapse under hidden
+- Fig. 8 (`fig_missing_reference_collapse`): rank collapse under hidden
   references (Section 4.5).
 
 All figures are in `manuscript_assets/experiment1/figures/` (PNG + PDF) and are
@@ -482,9 +461,9 @@ regenerated by `scripts/figures/plot_experiment1_figures.py` and
 
 **Declaration of competing interest.** The author declares no competing interests.
 
-**Declaration of generative AI and AI-assisted technologies in the manuscript preparation process.** During the preparation of this work the author used Claude (Anthropic) in order to assist with drafting, language and readability, and the organisation and formatting of the manuscript, and to help compile and format the reference list. After using this tool, the author reviewed and edited the content as needed — including independently verifying every cited source against the primary literature — and takes full responsibility for the content of the published article. All research design, data, analysis, results, interpretation, and scientific claims are the author's own original work.
+**Declaration of generative AI and AI-assisted technologies in the manuscript preparation process.** During the preparation of this work the author used Claude (Anthropic) in order to assist with drafting, language and readability, and the organisation and formatting of the manuscript, and to help compile and format the reference list. After using this tool, the author reviewed and edited the content as needed, including independently verifying every cited source against the primary literature, and takes full responsibility for the content of the published article. All research design, data, analysis, results, interpretation, and scientific claims are the author's own original work.
 
-**Data availability.** Sequence data derive from public BOLD Teleostei COI records and the Fish Tree of Life (Rabosky et al., 2018; https://doi.org/10.1038/s41586-018-0273-1). The derived, leakage-audited split manifests (with per-record BOLD/process IDs), all analysis code, run ledgers, figure scripts, and the source tables underlying the reported figures are released in the project repository (calibrated-rank-assignment); a tagged release with a Zenodo DOI will accompany submission, and raw accession lists will be deposited on acceptance. _[BOLD accession list / Zenodo DOI — to be completed.]_
+**Data availability.** Sequence data derive from public BOLD Teleostei COI records and the Fish Tree of Life (Rabosky et al., 2018; https://doi.org/10.1038/s41586-018-0273-1). The derived, leakage-audited split manifests (with per-record BOLD/process IDs), all analysis code, run ledgers, figure scripts, and the source tables underlying the reported figures are released in the project repository (calibrated-rank-assignment); a tagged release with a Zenodo DOI will accompany submission, and raw accession lists will be deposited on acceptance. _[BOLD accession list / Zenodo DOI to be completed.]_
 
 ## 7. References
 
